@@ -16,7 +16,7 @@ class Tapper:
     def listen(self) -> None:
         """Listen for NFC tags."""
 
-        logger.debug("Listening...")
+        logger.info("Listening...")
 
         with nfc.ContactlessFrontend(self.device) as clf:
             logger.debug(f"clf: {clf}")
@@ -27,7 +27,7 @@ class Tapper:
                 rdwr={"on-connect": lambda tag: False}
             )  # Waits for tag activation and deactivation, lambda takes in tag and returns False to stop the loop TODO: replace with something useful
 
-            logger.debug(f"Tag: {tag}")
+            logger.info(f"Tag: {tag}")
 
             print(tag)
 
