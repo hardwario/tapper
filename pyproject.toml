@@ -18,25 +18,17 @@ dependencies = [
 tapper = "tapper:tapper.main"
 
 [build-system]
-requires = ["hatchling", "uv-dynamic-versioning"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [tool.hatch.version]
-source = "uv-dynamic-versioning"
-
-[tool.uv-dynamic-versioning]
-vcs = "git"
-style = "semver"
+source = "vcs"
 
 [dependency-groups]
 dev = [
     "hatch>=1.14.0",
     "ruff>=0.11.2",
-    "uv-dynamic-versioning>=0.6.0",
 ]
 
 [tool.hatch.build.hooks.version]
 path = "src/tapper/_version.py"
-template = '''
-__version__ = "{version}"
-'''
