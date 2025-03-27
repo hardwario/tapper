@@ -1,0 +1,42 @@
+[project]
+name = "TAPPER"
+dynamic = ["version"]
+description = "HARDWARIO TAPPER - an MQTT NFC reader"
+readme = "README.md"
+authors = [
+    { name = "Martin", email = "81148675+Martian-0007@users.noreply.github.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "click>=8.1.8",
+    "loguru>=0.7.3",
+    "nfcpy>=1.0.4",
+    "pyyaml>=6.0.2",
+]
+
+[project.scripts]
+tapper = "tapper:tapper.main"
+
+[build-system]
+requires = ["hatchling", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.uv-dynamic-versioning]
+vcs = "git"
+style = "semver"
+
+[dependency-groups]
+dev = [
+    "hatch>=1.14.0",
+    "ruff>=0.11.2",
+    "uv-dynamic-versioning>=0.6.0",
+]
+
+[tool.hatch.build.hooks.version]
+path = "src/tapper/_version.py"
+template = '''
+__version__ = "{version}"
+'''
