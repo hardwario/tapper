@@ -9,7 +9,6 @@ from ._version import __version__
 
 class Tapper:
     def __init__(self, device="usb"):
-        logger.add("logs/tapper_{time}.log", rotation="1 day", retention="7 days")
         self.device = device.lower()
 
     @logger.catch

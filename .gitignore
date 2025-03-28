@@ -9,9 +9,10 @@ wheels/
 # Virtual environments
 .venv
 
-_version.py
-
-
 # IDEs
 # PyCharm
 .idea/
+
+# Application
+logs/
+_version.py
