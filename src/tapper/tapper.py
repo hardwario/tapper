@@ -22,7 +22,7 @@ class Tapper(PN532_SPI):
 
     @logger.catch()
     def __init__(
-        self, spi: busio.SPI, cs_pin: DigitalInOut, buzzer: Buzzer = Buzzer(20)
+        self, spi: busio.SPI, cs_pin: DigitalInOut, buzzer: Buzzer = Buzzer(18)
     ) -> None:
         """Initialize TAPPER."""
         super().__init__(spi, cs_pin)
