@@ -6,6 +6,8 @@ from adafruit_pn532.spi import PN532_SPI
 import busio
 from digitalio import DigitalInOut
 import board
+from gpiozero import Buzzer
+
 
 # TODO: add config file parsing (yaml)
 # TODO: add config file path argument
@@ -17,15 +19,19 @@ class Tapper(PN532_SPI):
     Adds additional functionality for TAPPER."""
 
     @logger.catch()
-    def __init__(self, spi: busio.SPI, cs_pin: DigitalInOut) -> None:
+    def __init__(
+        self, spi: busio.SPI, cs_pin: DigitalInOut, buzzer: Buzzer = Buzzer(20)
+    ) -> None:
         """Initialize TAPPER."""
         super().__init__(spi, cs_pin)
+        self.buzzer = buzzer
         logger.debug("TAPPER initialized.")
 
     @logger.catch()
     def process_tag(self, uid: bytearray) -> None:
         """Process UID of a detected NFC tag."""
         logger.debug(f"TAPPER processing tag. {[hex(i) for i in uid]}")
+        self.buzzer.beep()
         pass
 
     @logger.catch()
@@ -37,7 +43,7 @@ class Tapper(PN532_SPI):
         while True:
             uid = self.read_passive_target(timeout=0.5)
             if uid is not None:
-                logger.info(f"Tag detected: {[hex(i) for i in uid]}")
+                logger.debug(f"Tag detected: {[hex(i) for i in uid]}")
                 self.process_tag(uid)
 
 
