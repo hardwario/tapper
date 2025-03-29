@@ -6,11 +6,12 @@ readme = "README.md"
 authors = [
     { name = "Martin", email = "81148675+Martian-0007@users.noreply.github.com" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
+    "adafruit-blinka>=8.56.0",
+    "adafruit-circuitpython-pn532>=2.4.3",
     "click>=8.1.8",
     "loguru>=0.7.3",
-    "nfcpy>=1.0.4",
     "pyyaml>=6.0.2",
 ]
 
