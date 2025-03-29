@@ -33,7 +33,7 @@ class Tapper(PN532_SPI):
     def process_tag(self, uid: bytearray) -> None:
         """Process UID of a detected NFC tag.
         Log tag UID and activate buzzer."""
-        logger.debug(f"TAPPER processing tag. {[hex(i) for i in uid]}")
+        logger.debug(f"Processing tag: {' '.join([hex(i) for i in uid])}")
         self.buzzer.on()
         sleep(0.2)
         self.buzzer.off()
@@ -49,7 +49,7 @@ class Tapper(PN532_SPI):
         while True:
             uid = self.read_passive_target(timeout=0.5)
             if uid is not None:
-                logger.debug(f"Tag detected: {[hex(i) for i in uid]}")
+                logger.debug(f"Tag detected: {' '.join([hex(i) for i in uid])}")
                 self.process_tag(uid)
 
 
