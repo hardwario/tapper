@@ -1,5 +1,6 @@
-from loguru import logger
 import os
+
+from loguru import logger
 
 if not os.path.exists(os.path.join("~", ".tapper", "logs")):
     os.makedirs(os.path.join("~", ".tapper", "logs"), exist_ok=True)

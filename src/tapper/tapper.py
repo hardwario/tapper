@@ -1,13 +1,15 @@
-from loguru import logger
-import click
-from ._version import __version__
 import sys
-from adafruit_pn532.spi import PN532_SPI
-import busio
-from digitalio import DigitalInOut
-import board
-from gpiozero import Buzzer
+from time import sleep
 
+import board
+import busio
+import click
+from adafruit_pn532.spi import PN532_SPI
+from digitalio import DigitalInOut
+from gpiozero import Buzzer
+from loguru import logger
+
+from ._version import __version__
 
 # TODO: add config file parsing (yaml)
 # TODO: add config file path argument
@@ -31,7 +33,9 @@ class Tapper(PN532_SPI):
     def process_tag(self, uid: bytearray) -> None:
         """Process UID of a detected NFC tag."""
         logger.debug(f"TAPPER processing tag. {[hex(i) for i in uid]}")
-        self.buzzer.beep()
+        self.buzzer.on()
+        sleep(0.2)
+        self.buzzer.off()
         pass
 
     @logger.catch()
