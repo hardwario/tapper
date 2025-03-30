@@ -40,7 +40,7 @@ class Tapper(PN532_SPI):
         self.tamper_switch: Button = (
             Button(tamper_pin, pull_up=False, active_state=False)
             if tamper_pin
-            else Button(20)
+            else Button(20, pull_up=False, active_state=False)
         )
         if self.tamper_switch is None:
             logger.warning(
