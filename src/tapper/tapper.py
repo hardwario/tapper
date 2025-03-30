@@ -27,17 +27,18 @@ class Tapper(PN532_SPI):
         self,
         spi: busio.SPI,
         cs_pin: DigitalInOut,
-        tamper_switch: Button = Button(board.D20),
-        buzzer: Buzzer = Buzzer(board.D18),
+        tamper_pin: Button = None,
+        buzzer: Buzzer = None,
     ) -> None:
         """Initialize TAPPER."""
 
         super().__init__(spi, cs_pin)
 
-        self.buzzer: Buzzer = buzzer
+        self.buzzer: Buzzer = buzzer if buzzer else Buzzer(board.D18)
         self.buzzer.off()
-        self.tamper_switch: Button = tamper_switch
-        if self.tamper_switch is None:
+
+        self.tamper_pin: Button = tamper_pin if tamper_pin else Button(board.D20)
+        if self.tamper_pin is None:
             logger.warning(
                 """Tamper switch not initialized. Tamper will always return False."""
             )
@@ -62,8 +63,8 @@ class Tapper(PN532_SPI):
     def tamper(self) -> bool:
         """Get state of tamper switch."""
 
-        if self.tamper_switch is not None:
-            return self.tamper_switch.is_active
+        if self.tamper_pin is not None:
+            return self.tamper_pin.is_active
         else:
             return False
 
