@@ -34,10 +34,10 @@ class Tapper(PN532_SPI):
 
         super().__init__(spi, cs_pin)
 
-        self.buzzer: Buzzer = buzzer if buzzer else Buzzer(board.D18)
+        self.buzzer: Buzzer = buzzer if buzzer else Buzzer(int(board.D18))
         self.buzzer.off()
 
-        self.tamper_pin: Button = tamper_pin if tamper_pin else Button(board.D20)
+        self.tamper_pin: Button = tamper_pin if tamper_pin else Button(int(board.D20))
         if self.tamper_pin is None:
             logger.warning(
                 """Tamper switch not initialized. Tamper will always return False."""
@@ -110,9 +110,9 @@ def run(debug) -> None:
     spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
     cs_pin = DigitalInOut(board.D8)  # TODO: load from config
 
-    buzzer = Buzzer(board.D18)  # TODO: load from config
+    buzzer = Buzzer(int(board.D18))  # TODO: load from config
 
-    tamper = Button(board.D20)  # TODO: load from config
+    tamper = Button(int(board.D20))  # TODO: load from config
 
     tapper = Tapper(spi, cs_pin, tamper, buzzer)
     ic, ver, rev, support = tapper.firmware_version
