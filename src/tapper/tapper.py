@@ -37,7 +37,7 @@ class Tapper(PN532_SPI):
         self.buzzer: Buzzer = Buzzer(buzzer) if buzzer else Buzzer(18)
         self.buzzer.off()
 
-        self.tamper_switch: Button = Buzzer(tamper_pin) if tamper_pin else Button(20)
+        self.tamper_switch: Button = Button(tamper_pin) if tamper_pin else Button(20)
         if self.tamper_switch is None:
             logger.warning(
                 """Tamper switch not initialized. Tamper will always return False."""
