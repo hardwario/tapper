@@ -6,13 +6,15 @@ import busio
 import click
 from adafruit_pn532.spi import PN532_SPI
 from digitalio import DigitalInOut
-from gpiozero import Buzzer
+from gpiozero import Button, Buzzer
 from loguru import logger
 
-from ._version import __version__
+from tapper._version import __version__
 
 # TODO: add config file parsing (yaml)
 # TODO: add config file path argument
+# TODO: Send MQTT events on tag detection
+# TODO: add tamper detection
 
 
 class Tapper(PN532_SPI):
@@ -22,35 +24,60 @@ class Tapper(PN532_SPI):
 
     @logger.catch()
     def __init__(
-        self, spi: busio.SPI, cs_pin: DigitalInOut, buzzer: Buzzer = Buzzer(18)
+        self,
+        spi: busio.SPI,
+        cs_pin: DigitalInOut,
+        tamper_switch: Button = Button(board.D20),
+        buzzer: Buzzer = Buzzer(board.D18),
     ) -> None:
         """Initialize TAPPER."""
-        super().__init__(spi, cs_pin)
-        self.buzzer = buzzer
-        logger.debug("TAPPER initialized.")
 
-    @logger.catch()
-    def process_tag(self, uid: bytearray) -> None:
-        """Process UID of a detected NFC tag.
-        Log tag UID and activate buzzer."""
-        logger.debug(f"Processing tag: {' '.join([hex(i) for i in uid])}")
-        self.buzzer.on()
-        sleep(0.2)
+        super().__init__(spi, cs_pin)
+
+        self.buzzer: Buzzer = buzzer
         self.buzzer.off()
-        sleep(1.8)
-        pass
+        self.tamper_switch: Button = tamper_switch
+        if self.tamper_switch is None:
+            logger.warning(
+                """Tamper switch not initialized. Tamper will always return False."""
+            )
+
+        logger.debug("TAPPER initialized.")
 
     @logger.catch()
     def run(self) -> None:
         """Listen for NFC tags and process.
         Runs an infinite loop that listens for NFC tags.
         """
+
         logger.debug("Listening for NFC tags...")
+
         while True:
             uid = self.read_passive_target(timeout=0.5)
             if uid is not None:
                 logger.debug(f"Tag detected: {' '.join([hex(i) for i in uid])}")
                 self.process_tag(uid)
+
+    @logger.catch()
+    def tamper(self) -> bool:
+        """Get state of tamper switch."""
+
+        if self.tamper_switch is not None:
+            return self.tamper_switch.is_active
+        else:
+            return False
+
+    @logger.catch()
+    def process_tag(self, uid) -> None:
+        """Process UID of a detected NFC tag.
+        Log tag UID and activate buzzer."""
+
+        logger.debug(f"Processing tag: {' '.join([hex(i) for i in uid])}")
+        self.buzzer.on()
+        sleep(0.2)
+        self.buzzer.off()
+        sleep(1.8)
+        pass  # TODO: add tag processing logic
 
 
 @click.group()
@@ -79,8 +106,15 @@ def run(debug) -> None:
 
     logger.debug(f"Running TAPPER version {__version__}...")
 
-    # SPI connection:
     spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
-    cs_pin = DigitalInOut(board.D8)
-    tapper = Tapper(spi, cs_pin)
-    tapper.run()  # TODO: add on_connect function
+    cs_pin = DigitalInOut(board.D8)  # TODO: load from config
+
+    buzzer = Buzzer(board.D18)  # TODO: load from config
+
+    tamper = Button(board.D20)  # TODO: load from config
+
+    tapper = Tapper(spi, cs_pin, tamper, buzzer)
+    ic, ver, rev, support = tapper.firmware_version
+    logger.debug("Found PN532 with firmware version: {0}.{1}".format(ver, rev))
+
+    tapper.run()

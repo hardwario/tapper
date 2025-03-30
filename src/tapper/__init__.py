@@ -7,7 +7,7 @@ if not os.path.exists(os.path.join("~", ".tapper", "logs")):
 
 logger.remove()
 logger.add(
-    "~/.tapper/logs/tapper_{time}.log",
+    "/~/.tapper/logs/tapper_{time}.log",
     rotation="1 day",
     retention="3 days",
     level="TRACE",
