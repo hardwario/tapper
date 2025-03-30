@@ -52,6 +52,9 @@ class Tapper(PN532_SPI):
         if self.tamper_switch is not None:
             return self.tamper_switch.is_active
         else:
+            logger.warning(
+                """Tamper switch not initialized. Tamper will always return False."""
+            )
             return False
 
     @logger.catch()
