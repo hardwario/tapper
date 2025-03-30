@@ -38,7 +38,9 @@ class Tapper(PN532_SPI):
         self.buzzer.off()
 
         self.tamper_switch: Button = (
-            Button(tamper_pin, pull_up=True) if tamper_pin else Button(20, pull_up=True)
+            Button(tamper_pin, pull_up=False)
+            if tamper_pin
+            else Button(20, pull_up=False)
         )
         if self.tamper_switch is None:
             logger.warning(
