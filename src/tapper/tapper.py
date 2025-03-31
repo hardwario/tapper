@@ -6,9 +6,9 @@ import sys
 import uuid
 from time import time
 
+import asyncclick as click
 import board
 import busio
-import click
 import paho.mqtt.client as mqtt
 import uvloop
 from adafruit_pn532.spi import PN532_SPI
@@ -168,9 +168,19 @@ def main() -> None:
 
 
 @main.command(help="Display version of TAPPER package.")
+@click.option(
+    "-d",
+    "--debug",
+    is_flag=True,
+    help="Enable debug mode. (Print debug logs to terminal)",
+)
 @logger.catch()
-def version() -> None:
+def version(debug) -> None:
     """Print the version of the tapper."""
+
+    if debug:
+        logger.add(sys.stderr, level="DEBUG", enqueue=True)
+
     click.echo(f"TAPPER version: {click.style(str(__version__), fg='green')}")
     logger.debug(f"TAPPER version: {__version__}")
 
@@ -184,7 +194,7 @@ def version() -> None:
 )
 @click.option("--mqtt", "mqtt_host", help="MQTT host", required=True)
 @logger.catch()
-def run(debug, mqtt_host, tamper) -> None:
+def run(debug, mqtt_host) -> None:
     """Run TAPPER."""
 
     if debug:
@@ -204,8 +214,6 @@ def run(debug, mqtt_host, tamper) -> None:
     logger.debug("Found PN532 with firmware version: {0}.{1}".format(ver, rev))
 
     logger.debug("Listening for NFC tags...")
-
-    tamper_closed = True
 
     logger.debug(f"Tamper switch initial state: {tapper.tamper()}")
 
@@ -227,6 +235,8 @@ def run(debug, mqtt_host, tamper) -> None:
             logger.debug("Tamper switch active.")
         else:
             logger.debug("Tamper switch not active. Box open!")
+
+        tamper_closed = None
 
         if tamper_closed != tapper.tamper():
             logger.warning("Tampering detected!")
