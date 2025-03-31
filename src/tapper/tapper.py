@@ -1,9 +1,12 @@
+"""Package for use with HARDWARIO TAPPER"""
+
 import sys
 from time import sleep
 
 import board
 import busio
 import click
+import paho.mqtt.client as mqtt
 from adafruit_pn532.spi import PN532_SPI
 from digitalio import DigitalInOut
 from gpiozero import Button, Buzzer
@@ -27,6 +30,7 @@ class Tapper(PN532_SPI):
         self,
         spi: busio.SPI,
         cs_pin: DigitalInOut,
+        mqtt_host: str,
         tamper_pin: int or str = None,
         buzzer: int or str = None,
     ) -> None:
@@ -36,6 +40,11 @@ class Tapper(PN532_SPI):
 
         self.buzzer: Buzzer = Buzzer(buzzer) if buzzer else Buzzer(18)
         self.buzzer.off()
+
+        self.mqttc = mqtt.Client()
+        self.mqttc.connect(mqtt_host, 1883, 60)
+        self.mqttc.publish("tapper/device", "TAPPER Alive")
+        logger.debug("MQTT connected")
 
         self.tamper_switch: Button = (
             Button(tamper_pin, pull_up=False)
@@ -67,16 +76,19 @@ class Tapper(PN532_SPI):
         Log tag UID and activate buzzer."""
 
         logger.debug(f"Processing tag: {' '.join([hex(i) for i in uid])}")
+
         self.buzzer.on()
         sleep(0.2)
         self.buzzer.off()
         sleep(1.8)
-        pass  # TODO: add tag processing logic
+
+        self.mqttc.publish("tapper/tag", f"Tag read: {' '.join([hex(i) for i in uid])}")
 
 
 @click.group()
 def main() -> None:
-    """Package for use with HARDWARIO TAPPER"""
+    """Define click group"""
+    pass
 
 
 @main.command(help="Display version of TAPPER package.")
@@ -89,10 +101,14 @@ def version() -> None:
 
 @main.command(help="Run TAPPER.")
 @click.option(
-    "--debug", is_flag=True, help="Enable debug mode. (Print debug logs to terminal)"
+    "-d",
+    "--debug",
+    is_flag=True,
+    help="Enable debug mode. (Print debug logs to terminal)",
 )
+@click.option("--mqtt", "mqtt_host", help="MQTT host", required=True)
 @logger.catch()
-def run(debug) -> None:
+def run(debug, mqtt_host) -> None:
     """Run TAPPER."""
 
     if debug:
@@ -107,11 +123,14 @@ def run(debug) -> None:
 
     tamper = 20  # TODO: load from config
 
-    tapper = Tapper(spi, cs_pin, tamper, buzzer)
+    tapper = Tapper(spi, cs_pin, tamper, buzzer, mqtt_host)
     ic, ver, rev, support = tapper.firmware_version
     logger.debug("Found PN532 with firmware version: {0}.{1}".format(ver, rev))
 
     logger.debug("Listening for NFC tags...")
+
+    tamper_init = tapper.tamper()
+    logger.debug(f"Tamper switch initial state: {tamper_init}")
 
     # Run loop
     while True:
@@ -120,7 +139,15 @@ def run(debug) -> None:
             logger.debug(f"Tag detected: {' '.join([hex(i) for i in uid])}")
             tapper.process_tag(uid)
 
+        # Debug
         if tapper.tamper():
             logger.debug("Tamper switch active.")
         else:
             logger.debug("Tamper switch not active.")
+
+        if tamper_init != tapper.tamper():
+            logger.warning("Tampering detected!")
+            tapper.mqttc.publish("tapper/tamper", "Tampering detected!")
+            tapper.buzzer.on()
+        else:
+            tapper.buzzer.off()
