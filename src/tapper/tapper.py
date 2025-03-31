@@ -220,7 +220,7 @@ async def run(debug, mqtt_host) -> None:
     # TODO: mqtt topic tapper/{id/MAC}/
 
     # Run loop
-    await run(loops(tapper))
+    await loops(tapper)
 
     # Deprecated
     while False:
