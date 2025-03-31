@@ -130,7 +130,7 @@ async def cleanup(tapper: Tapper) -> None:
     """Clean up on termination."""
     logger.info("Cleaning up...")
     tapper.buzzer.off()
-    tapper.mqttc.publish("tapper/device", "TAPPER shutting down")
+    await tapper.mqtt_publish("device", "TAPPER shutting down")
     tapper.mqttc.disconnect()
     logger.info("Cleanup complete.")
 
@@ -258,6 +258,7 @@ def run(debug, mqtt_host) -> None:
     logger.debug("Found PN532 with firmware version: {0}.{1}".format(ver, rev))
 
     logger.debug(f"Tamper switch initial state: {tapper.tamper}")
+    tapper.mqtt_publish("tamper/init", tapper.tamper)
 
     # Run loop
     uvloop.run(loops(tapper))
