@@ -50,7 +50,7 @@ class Tapper(PN532_SPI):
 
         self.mqttc = mqtt.Client()
         self.mqttc.connect(mqtt_host, 1883, 60)
-        self.mqtt_publish("device", "TAPPER Alive")
+        await self.mqtt_publish("device", "TAPPER Alive")
         logger.debug("MQTT connected")
 
         self.tamper_switch: Button = (
@@ -132,7 +132,7 @@ async def tag_loop(tapper: Tapper) -> None:
 async def tamper_loop(tapper: Tapper) -> None:
     while True:
         if tapper.tamper():
-            tapper.mqtt_publish("tamper", "Tamper detected!")
+            await tapper.mqtt_publish("tamper", "Tamper detected!")
             logger.warning(f"Tamper detected: {time()}")
 
             await tapper.lock_buzzer.acquire()
@@ -245,7 +245,7 @@ def run(debug, mqtt_host) -> None:
 
         if tamper_closed != tapper.tamper():
             logger.warning("Tampering detected!")
-            tapper.mqtt_publish("tamper", "Tampering detected!")
+            await tapper.mqtt_publish("tamper", "Tampering detected!")
             tapper.buzzer.on()
         else:
             tapper.buzzer.off()
