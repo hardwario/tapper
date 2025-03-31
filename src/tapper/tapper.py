@@ -179,7 +179,13 @@ async def heartbeat_loop(tapper: Tapper, shutdown_event: asyncio.Event) -> None:
                 "disk": psutil.disk_usage("/").percent,
             },
         )
-        await asyncio.sleep(60)
+
+        try:
+            await asyncio.wait_for(
+                shutdown_event.wait(), timeout=60
+            )  # Make sleep interruptable
+        except asyncio.TimeoutError:
+            pass
 
 
 async def loops(tapper: Tapper) -> None:
