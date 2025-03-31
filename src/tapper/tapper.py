@@ -31,8 +31,8 @@ class Tapper(PN532_SPI):
         spi: busio.SPI,
         cs_pin: DigitalInOut,
         mqtt_host: str,
-        tamper_pin: int or str = None,
-        buzzer: int or str = None,
+        tamper_pin: int | str = None,
+        buzzer: int | str = None,
     ) -> None:
         """Initialize TAPPER."""
 
@@ -123,7 +123,7 @@ def run(debug, mqtt_host) -> None:
 
     tamper = 20  # TODO: load from config
 
-    tapper = Tapper(spi, cs_pin, tamper, buzzer, mqtt_host)
+    tapper = Tapper(spi, cs_pin, mqtt_host, tamper, buzzer)
     ic, ver, rev, support = tapper.firmware_version
     logger.debug("Found PN532 with firmware version: {0}.{1}".format(ver, rev))
 
