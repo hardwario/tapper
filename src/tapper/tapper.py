@@ -10,6 +10,7 @@ import board
 import busio
 import click
 import paho.mqtt.client as mqtt
+import psutil
 import uvloop
 from adafruit_pn532.spi import PN532_SPI
 from digitalio import DigitalInOut
@@ -20,8 +21,6 @@ from tapper._version import __version__
 
 # TODO: add config file parsing (yaml)
 # TODO: add config file path argument
-# TODO: Send MQTT events on tag detection
-# TODO: add tamper detection
 
 
 class Tapper(PN532_SPI):
@@ -44,6 +43,7 @@ class Tapper(PN532_SPI):
 
         self.lock_buzzer = asyncio.Lock()
         self.lock_mqtt = asyncio.Lock()
+        self.lock_nfc = asyncio.Lock()
 
         self.buzzer: Buzzer = Buzzer(buzzer_pin) if buzzer_pin else Buzzer(18)
         self.buzzer.off()
@@ -114,55 +114,57 @@ class Tapper(PN532_SPI):
         await self.lock_buzzer.acquire()
         try:
             self.buzzer.on()
-            sleep(0.2)
+            sleep(0.1)
             self.buzzer.off()
-            sleep(0.2)
         finally:
             self.lock_buzzer.release()
 
-        await self.mqtt_publish("tag", f"Tag read: {' '.join([hex(i) for i in uid])}")
+        await self.mqtt_publish("tag", f"{' '.join([hex(i) for i in uid])}")
 
 
 @logger.catch()
 async def tag_loop(tapper: Tapper) -> None:
     while True:
-        uid = tapper.read_passive_target(timeout=1)
+        uid = tapper.read_passive_target(timeout=0.5)
         if uid is not None:
             logger.debug(f"Tag detected: {' '.join([hex(i) for i in uid])}")
             await tapper.process_tag(uid)
 
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.1)
 
 
 @logger.catch()
 async def tamper_loop(tapper: Tapper) -> None:
     while True:
-        if tapper.tamper:
-            await tapper.mqtt_publish("tamper", "Tamper detected!")
-            logger.warning(f"Tamper detected: {time()}")
+        await tapper.lock_buzzer.acquire()
 
-            await tapper.lock_buzzer.acquire()
-            try:
+        try:
+            if not tapper.tamper:  # TODO: negate for production
+                await tapper.mqtt_publish("tamper", "Tamper detected!")
+                logger.warning(f"Tamper detected: {time()}")
+
                 tapper.buzzer.on()
-            finally:
-                tapper.lock_buzzer.release()
 
-        else:
-            await tapper.lock_buzzer.acquire()
-            try:
+            else:
                 tapper.buzzer.off()
-            finally:
-                tapper.lock_buzzer.release()
+        finally:
+            tapper.lock_buzzer.release()
 
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.25)
 
 
 @logger.catch()
 async def heartbeat_loop(tapper: Tapper) -> None:
-    start = time()
     while True:
         await tapper.mqtt_publish(
-            "heartbeat", f"TAPPER {tapper.id} Alive! Uptime: {time() - start}"
+            "heartbeat",
+            {
+                "id": tapper.id,
+                "uptime": f"{time() - psutil.boot_time()}",
+                "cpu": psutil.cpu_percent(),
+                "memory": psutil.virtual_memory().percent,
+                "disk": psutil.disk_usage("/").percent,
+            },
         )
         await asyncio.sleep(60)
 
@@ -224,12 +226,7 @@ def run(debug, mqtt_host) -> None:
     ic, ver, rev, support = tapper.firmware_version
     logger.debug("Found PN532 with firmware version: {0}.{1}".format(ver, rev))
 
-    logger.debug("Listening for NFC tags...")
-
     logger.debug(f"Tamper switch initial state: {tapper.tamper}")
-
-    # TODO: json on MQTT
-    # TODO: mqtt topic tapper/{id/MAC}/
 
     # Run loop
     uvloop.run(loops(tapper))
