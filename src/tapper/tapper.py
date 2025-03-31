@@ -1,12 +1,16 @@
 """Package for use with HARDWARIO TAPPER"""
 
+import asyncio
+import json
 import sys
-from time import sleep
+import uuid
+from time import time
 
 import board
 import busio
 import click
 import paho.mqtt.client as mqtt
+import uvloop
 from adafruit_pn532.spi import PN532_SPI
 from digitalio import DigitalInOut
 from gpiozero import Button, Buzzer
@@ -32,13 +36,16 @@ class Tapper(PN532_SPI):
         cs_pin: DigitalInOut,
         mqtt_host: str,
         tamper_pin: int | str = None,
-        buzzer: int | str = None,
+        buzzer_pin: int | str = None,
     ) -> None:
         """Initialize TAPPER."""
 
         super().__init__(spi, cs_pin)
 
-        self.buzzer: Buzzer = Buzzer(buzzer) if buzzer else Buzzer(18)
+        self.lock_buzzer = asyncio.Lock()
+        self.lock_mqtt = asyncio.Lock()
+
+        self.buzzer: Buzzer = Buzzer(buzzer_pin) if buzzer_pin else Buzzer(18)
         self.buzzer.off()
 
         self.mqttc = mqtt.Client()
@@ -53,10 +60,31 @@ class Tapper(PN532_SPI):
         )
         if self.tamper_switch is None:
             logger.warning(
-                """Tamper switch not initialized. Tamper will always return False."""
+                """Tamper switch not initialized. Tamper will always return True."""
             )
 
+        self.mac_int = uuid.getnode()
+        self.id = ":".join(
+            f"{(self.mac_int >> i) & 0xFF:02x}"  # Get one byte, format as 2-digit hex
+            for i in reversed(range(0, 48, 8))  # Go over each byte from left to right
+        )
+
         logger.debug("TAPPER initialized.")
+
+    @logger.catch()
+    async def mqtt_publish(self, topic: str, payload: any) -> None:
+        """Publish message to MQTT broker."""
+
+        topic = f"tapper/{self.id}/{topic}"
+        logger.debug(f"Publishing MQTT message {topic} {payload}")
+
+        message = json.dumps({"timestamp": time(), "payload": payload})
+
+        await self.lock_mqtt.acquire()
+        try:
+            self.mqttc.publish(topic, message)
+        finally:
+            self.lock_mqtt.release()
 
     @logger.catch()
     def tamper(self) -> bool:
@@ -68,23 +96,71 @@ class Tapper(PN532_SPI):
             logger.warning(
                 """Tamper switch not initialized. Tamper will always return False."""
             )
-            return False
+            return True
 
     @logger.catch()
-    def process_tag(self, uid: bytearray) -> None:
+    async def process_tag(self, uid: bytearray) -> None:
         """Process UID of a detected NFC tag.
         Log tag UID and activate buzzer."""
 
         logger.debug(f"Processing tag: {' '.join([hex(i) for i in uid])}")
 
-        self.buzzer.on()
-        sleep(0.2)
-        self.buzzer.off()
-        sleep(1.8)
+        await self.lock_buzzer.acquire()
+        try:
+            self.buzzer.on()
+            await asyncio.sleep(0.2)
+            self.buzzer.off()
+            await asyncio.sleep(0.2)
+        finally:
+            self.lock_buzzer.release()
 
-        self.mqttc.publish("tapper/tag", f"Tag read: {' '.join([hex(i) for i in uid])}")
+        await self.mqtt_publish("tag", f"Tag read: {' '.join([hex(i) for i in uid])}")
 
 
+@logger.catch()
+async def tag_loop(tapper: Tapper) -> None:
+    while True:
+        uid = tapper.read_passive_target(timeout=0.5)
+        if uid is not None:
+            logger.debug(f"Tag detected: {' '.join([hex(i) for i in uid])}")
+            await tapper.process_tag(uid)
+
+
+@logger.catch()
+async def tamper_loop(tapper: Tapper) -> None:
+    while True:
+        if tapper.tamper():
+            tapper.mqtt_publish("tamper", "Tamper detected!")
+            logger.warning(f"Tamper detected: {time()}")
+
+            await tapper.lock_buzzer.acquire()
+            try:
+                tapper.buzzer.on()
+            finally:
+                tapper.lock_buzzer.release()
+
+        else:
+            await tapper.lock_buzzer.acquire()
+            try:
+                tapper.buzzer.off()
+            finally:
+                tapper.lock_buzzer.release()
+
+
+@logger.catch()
+async def heartbeat_loop(tapper: Tapper) -> None:
+    start = time()
+    while True:
+        tapper.mqttc.publish(
+            "heartbeat", f"TAPPER {tapper.id} Alive! Uptime: {time() - start}"
+        )
+
+
+async def loops(tapper: Tapper) -> None:
+    asyncio.gather(tag_loop(tapper), tamper_loop(tapper), heartbeat_loop(tapper))
+
+
+# Commands
 @click.group()
 def main() -> None:
     """Define click group"""
@@ -108,11 +184,11 @@ def version() -> None:
 )
 @click.option("--mqtt", "mqtt_host", help="MQTT host", required=True)
 @logger.catch()
-def run(debug, mqtt_host) -> None:
+def run(debug, mqtt_host, tamper) -> None:
     """Run TAPPER."""
 
     if debug:
-        logger.add(sys.stderr, level="DEBUG")
+        logger.add(sys.stderr, level="DEBUG", enqueue=True)
 
     logger.debug(f"Running TAPPER version {__version__}...")
 
@@ -129,11 +205,18 @@ def run(debug, mqtt_host) -> None:
 
     logger.debug("Listening for NFC tags...")
 
-    tamper_init = tapper.tamper()
-    logger.debug(f"Tamper switch initial state: {tamper_init}")
+    tamper_closed = True
+
+    logger.debug(f"Tamper switch initial state: {tapper.tamper()}")
+
+    # TODO: json on MQTT
+    # TODO: mqtt topic tapper/{id/MAC}/
 
     # Run loop
-    while True:
+    uvloop.run(loops(tapper))
+
+    # Deprecated
+    while False:
         uid = tapper.read_passive_target(timeout=0.5)
         if uid is not None:
             logger.debug(f"Tag detected: {' '.join([hex(i) for i in uid])}")
@@ -143,11 +226,11 @@ def run(debug, mqtt_host) -> None:
         if tapper.tamper():
             logger.debug("Tamper switch active.")
         else:
-            logger.debug("Tamper switch not active.")
+            logger.debug("Tamper switch not active. Box open!")
 
-        if tamper_init != tapper.tamper():
+        if tamper_closed != tapper.tamper():
             logger.warning("Tampering detected!")
-            tapper.mqttc.publish("tapper/tamper", "Tampering detected!")
+            tapper.mqtt_publish("tamper", "Tampering detected!")
             tapper.buzzer.on()
         else:
             tapper.buzzer.off()

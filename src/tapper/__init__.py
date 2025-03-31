@@ -13,4 +13,5 @@ logger.add(
     rotation="1 day",
     retention="3 days",
     level="TRACE",
+    enqueue=True,
 )
