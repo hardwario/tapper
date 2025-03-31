@@ -50,7 +50,7 @@ class Tapper(PN532_SPI):
 
         self.mqttc = mqtt.Client()
         self.mqttc.connect(mqtt_host, 1883, 60)
-        await self.mqtt_publish("device", "TAPPER Alive")
+        uvloop.run(self.mqtt_publish("device", "alive"))
         logger.debug("MQTT connected")
 
         self.tamper_switch: Button = (
@@ -227,25 +227,3 @@ def run(debug, mqtt_host) -> None:
 
     # Run loop
     uvloop.run(loops(tapper))
-
-    # Deprecated
-    while False:
-        uid = tapper.read_passive_target(timeout=0.5)
-        if uid is not None:
-            logger.debug(f"Tag detected: {' '.join([hex(i) for i in uid])}")
-            tapper.process_tag(uid)
-
-        # Debug
-        if tapper.tamper():
-            logger.debug("Tamper switch active.")
-        else:
-            logger.debug("Tamper switch not active. Box open!")
-
-        tamper_closed = None
-
-        if tamper_closed != tapper.tamper():
-            logger.warning("Tampering detected!")
-            await tapper.mqtt_publish("tamper", "Tampering detected!")
-            tapper.buzzer.on()
-        else:
-            tapper.buzzer.off()
