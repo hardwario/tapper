@@ -10,7 +10,6 @@ import asyncclick as click
 import board
 import busio
 import paho.mqtt.client as mqtt
-import uvloop
 from adafruit_pn532.spi import PN532_SPI
 from digitalio import DigitalInOut
 from gpiozero import Button, Buzzer
@@ -194,7 +193,7 @@ def version(debug) -> None:
 )
 @click.option("--mqtt", "mqtt_host", help="MQTT host", required=True)
 @logger.catch()
-def run(debug, mqtt_host) -> None:
+async def run(debug, mqtt_host) -> None:
     """Run TAPPER."""
 
     if debug:
@@ -221,7 +220,7 @@ def run(debug, mqtt_host) -> None:
     # TODO: mqtt topic tapper/{id/MAC}/
 
     # Run loop
-    uvloop.run(loops(tapper))
+    await run(loops(tapper))
 
     # Deprecated
     while False:
