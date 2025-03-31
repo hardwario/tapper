@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import signal
 import sys
 import uuid
 from time import sleep, time
@@ -51,7 +52,7 @@ class Tapper(PN532_SPI):
         self.mqttc = mqtt.Client()
         self.mqttc.connect(mqtt_host, 1883, 60)
         uvloop.run(self.mqtt_publish("device", "alive"))
-        logger.debug("MQTT connected")
+        logger.info("MQTT connected")
 
         self.tamper_switch: Button = (
             Button(tamper_pin, pull_up=False)
@@ -63,11 +64,13 @@ class Tapper(PN532_SPI):
                 """Tamper switch not initialized. Tamper will always return True."""
             )
 
-        logger.debug("TAPPER initialized.")
+        logger.info("TAPPER initialized.")
 
     @property
     @logger.catch()
     def id(self) -> str:
+        """Return MAC address."""
+
         mac_int = uuid.getnode()
         tapper_id = ":".join(
             f"{(mac_int >> i) & 0xFF:02x}"  # Get one byte, format as 2-digit hex
@@ -123,8 +126,18 @@ class Tapper(PN532_SPI):
 
 
 @logger.catch()
-async def tag_loop(tapper: Tapper) -> None:
-    while True:
+async def cleanup(tapper: Tapper) -> None:
+    """Clean up on termination."""
+    logger.info("Cleaning up...")
+    tapper.buzzer.off()
+    tapper.mqttc.publish("tapper/device", "TAPPER shutting down")
+    tapper.mqttc.disconnect()
+    logger.info("Cleanup complete.")
+
+
+@logger.catch()
+async def tag_loop(tapper: Tapper, shutdown_event: asyncio.Event) -> None:
+    while not shutdown_event.is_set():
         uid = tapper.read_passive_target(timeout=0.5)
         if uid is not None:
             logger.debug(f"Tag detected: {' '.join([hex(i) for i in uid])}")
@@ -134,8 +147,8 @@ async def tag_loop(tapper: Tapper) -> None:
 
 
 @logger.catch()
-async def tamper_loop(tapper: Tapper) -> None:
-    while True:
+async def tamper_loop(tapper: Tapper, shutdown_event: asyncio.Event) -> None:
+    while not shutdown_event.is_set():
         await tapper.lock_buzzer.acquire()
 
         try:
@@ -154,8 +167,8 @@ async def tamper_loop(tapper: Tapper) -> None:
 
 
 @logger.catch()
-async def heartbeat_loop(tapper: Tapper) -> None:
-    while True:
+async def heartbeat_loop(tapper: Tapper, shutdown_event: asyncio.Event) -> None:
+    while not shutdown_event.is_set():
         await tapper.mqtt_publish(
             "heartbeat",
             {
@@ -170,7 +183,19 @@ async def heartbeat_loop(tapper: Tapper) -> None:
 
 
 async def loops(tapper: Tapper) -> None:
-    await asyncio.gather(tag_loop(tapper), tamper_loop(tapper), heartbeat_loop(tapper))
+    shutdown_event = asyncio.Event()
+
+    loop = asyncio.get_running_loop()
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        loop.add_signal_handler(sig, shutdown_event.set)
+
+    await asyncio.gather(
+        tag_loop(tapper, shutdown_event),
+        tamper_loop(tapper, shutdown_event),
+        heartbeat_loop(tapper, shutdown_event),
+    )
+
+    await cleanup(tapper)
 
 
 # Commands
@@ -213,7 +238,7 @@ def run(debug, mqtt_host) -> None:
     if debug:
         logger.add(sys.stderr, level="DEBUG", enqueue=True)
 
-    logger.debug(f"Running TAPPER version {__version__}...")
+    logger.info(f"Running TAPPER version {__version__}...")
 
     spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
     cs_pin = DigitalInOut(board.D8)  # TODO: load from config
