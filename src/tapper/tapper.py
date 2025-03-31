@@ -161,7 +161,7 @@ async def tamper_loop(tapper: Tapper) -> None:
 async def heartbeat_loop(tapper: Tapper) -> None:
     start = time()
     while True:
-        tapper.mqtt_publish(
+        await tapper.mqtt_publish(
             "heartbeat", f"TAPPER {tapper.id} Alive! Uptime: {time() - start}"
         )
         await asyncio.sleep(60)
