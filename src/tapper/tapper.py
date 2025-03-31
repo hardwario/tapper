@@ -156,7 +156,7 @@ async def heartbeat_loop(tapper: Tapper) -> None:
 
 
 async def loops(tapper: Tapper) -> None:
-    asyncio.gather(tag_loop(tapper), tamper_loop(tapper), heartbeat_loop(tapper))
+    await asyncio.gather(tag_loop(tapper), tamper_loop(tapper), heartbeat_loop(tapper))
 
 
 # Commands
