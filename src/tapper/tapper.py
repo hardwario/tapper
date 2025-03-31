@@ -120,10 +120,12 @@ class Tapper(PN532_SPI):
 @logger.catch()
 async def tag_loop(tapper: Tapper) -> None:
     while True:
-        uid = tapper.read_passive_target(timeout=0.5)
+        uid = tapper.read_passive_target(timeout=1)
         if uid is not None:
             logger.debug(f"Tag detected: {' '.join([hex(i) for i in uid])}")
             await tapper.process_tag(uid)
+
+        await asyncio.sleep(1)
 
 
 @logger.catch()
@@ -146,6 +148,8 @@ async def tamper_loop(tapper: Tapper) -> None:
             finally:
                 tapper.lock_buzzer.release()
 
+        await asyncio.sleep(1)
+
 
 @logger.catch()
 async def heartbeat_loop(tapper: Tapper) -> None:
@@ -154,6 +158,7 @@ async def heartbeat_loop(tapper: Tapper) -> None:
         tapper.mqttc.publish(
             "heartbeat", f"TAPPER {tapper.id} Alive! Uptime: {time() - start}"
         )
+        await asyncio.sleep(60)
 
 
 async def loops(tapper: Tapper) -> None:
