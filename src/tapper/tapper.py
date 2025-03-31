@@ -4,12 +4,13 @@ import asyncio
 import json
 import sys
 import uuid
-from time import time
+from time import sleep, time
 
-import asyncclick as click
 import board
 import busio
+import click
 import paho.mqtt.client as mqtt
+import uvloop
 from adafruit_pn532.spi import PN532_SPI
 from digitalio import DigitalInOut
 from gpiozero import Button, Buzzer
@@ -49,7 +50,7 @@ class Tapper(PN532_SPI):
 
         self.mqttc = mqtt.Client()
         self.mqttc.connect(mqtt_host, 1883, 60)
-        self.mqttc.publish("tapper/device", "TAPPER Alive")
+        self.mqtt_publish("device", "TAPPER Alive")
         logger.debug("MQTT connected")
 
         self.tamper_switch: Button = (
@@ -107,9 +108,9 @@ class Tapper(PN532_SPI):
         await self.lock_buzzer.acquire()
         try:
             self.buzzer.on()
-            await asyncio.sleep(0.2)
+            sleep(0.2)
             self.buzzer.off()
-            await asyncio.sleep(0.2)
+            sleep(0.2)
         finally:
             self.lock_buzzer.release()
 
@@ -193,7 +194,7 @@ def version(debug) -> None:
 )
 @click.option("--mqtt", "mqtt_host", help="MQTT host", required=True)
 @logger.catch()
-async def run(debug, mqtt_host) -> None:
+def run(debug, mqtt_host) -> None:
     """Run TAPPER."""
 
     if debug:
@@ -220,7 +221,7 @@ async def run(debug, mqtt_host) -> None:
     # TODO: mqtt topic tapper/{id/MAC}/
 
     # Run loop
-    await loops(tapper)
+    uvloop.run(loops(tapper))
 
     # Deprecated
     while False:
