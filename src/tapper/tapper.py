@@ -63,13 +63,18 @@ class Tapper(PN532_SPI):
                 """Tamper switch not initialized. Tamper will always return True."""
             )
 
-        self.mac_int = uuid.getnode()
-        self.id = ":".join(
-            f"{(self.mac_int >> i) & 0xFF:02x}"  # Get one byte, format as 2-digit hex
+        logger.debug("TAPPER initialized.")
+
+    @property
+    @logger.catch()
+    def id(self) -> str:
+        mac_int = uuid.getnode()
+        tapper_id = ":".join(
+            f"{(mac_int >> i) & 0xFF:02x}"  # Get one byte, format as 2-digit hex
             for i in reversed(range(0, 48, 8))  # Go over each byte from left to right
         )
 
-        logger.debug("TAPPER initialized.")
+        return tapper_id
 
     @logger.catch()
     async def mqtt_publish(self, topic: str, payload: any) -> None:
@@ -86,6 +91,7 @@ class Tapper(PN532_SPI):
         finally:
             self.lock_mqtt.release()
 
+    @property
     @logger.catch()
     def tamper(self) -> bool:
         """Get state of tamper switch."""
@@ -131,7 +137,7 @@ async def tag_loop(tapper: Tapper) -> None:
 @logger.catch()
 async def tamper_loop(tapper: Tapper) -> None:
     while True:
-        if tapper.tamper():
+        if tapper.tamper:
             await tapper.mqtt_publish("tamper", "Tamper detected!")
             logger.warning(f"Tamper detected: {time()}")
 
@@ -155,7 +161,7 @@ async def tamper_loop(tapper: Tapper) -> None:
 async def heartbeat_loop(tapper: Tapper) -> None:
     start = time()
     while True:
-        tapper.mqttc.publish(
+        tapper.mqtt_publish(
             "heartbeat", f"TAPPER {tapper.id} Alive! Uptime: {time() - start}"
         )
         await asyncio.sleep(60)
@@ -220,7 +226,7 @@ def run(debug, mqtt_host) -> None:
 
     logger.debug("Listening for NFC tags...")
 
-    logger.debug(f"Tamper switch initial state: {tapper.tamper()}")
+    logger.debug(f"Tamper switch initial state: {tapper.tamper}")
 
     # TODO: json on MQTT
     # TODO: mqtt topic tapper/{id/MAC}/
