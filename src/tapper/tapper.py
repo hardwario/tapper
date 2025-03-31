@@ -148,6 +148,8 @@ async def tag_loop(tapper: Tapper, shutdown_event: asyncio.Event) -> None:
 
 @logger.catch()
 async def tamper_loop(tapper: Tapper, shutdown_event: asyncio.Event) -> None:
+    tapper.mqtt_publish("tamper/init", tapper.tamper)
+
     while not shutdown_event.is_set():
         await tapper.lock_buzzer.acquire()
 
@@ -258,7 +260,6 @@ def run(debug, mqtt_host) -> None:
     logger.debug("Found PN532 with firmware version: {0}.{1}".format(ver, rev))
 
     logger.debug(f"Tamper switch initial state: {tapper.tamper}")
-    tapper.mqtt_publish("tamper/init", tapper.tamper)
 
     # Run loop
     uvloop.run(loops(tapper))
