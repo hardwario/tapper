@@ -139,7 +139,7 @@ async def tamper_loop(tapper: Tapper) -> None:
         await tapper.lock_buzzer.acquire()
 
         try:
-            if not tapper.tamper:  # TODO: negate for production
+            if tapper.tamper:  # TODO: negate for production
                 await tapper.mqtt_publish("tamper", "Tamper detected!")
                 logger.warning(f"Tamper detected: {time()}")
 
