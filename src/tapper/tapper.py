@@ -148,7 +148,7 @@ async def tag_loop(tapper: Tapper, shutdown_event: asyncio.Event) -> None:
 
 @logger.catch()
 async def tamper_loop(tapper: Tapper, shutdown_event: asyncio.Event) -> None:
-    tapper.mqtt_publish("tamper/init", tapper.tamper)
+    await tapper.mqtt_publish("tamper/init", tapper.tamper)
 
     while not shutdown_event.is_set():
         await tapper.lock_buzzer.acquire()
