@@ -235,17 +235,18 @@ def version(debug) -> None:
     is_flag=True,
     help="Enable debug mode. (Print debug logs to terminal)",
 )
-@click.option("--mqtt", "mqtt_host", help="MQTT host", required=True)
-@click.option("--logtail", "logtail", help="Logtail token")
+@click.option("-h", "--mqtt", "mqtt_host", help="MQTT host", required=True)
+@click.option("-lt", "--logtail", "logtail_token", help="Logtail token")
+@click.option("-lh", "--logtail_host", "logtail_host", help="Logtail host")
 @logger.catch(level="CRITICAL")
-def run(debug, mqtt_host, logtail) -> None:
+def run(debug, mqtt_host, logtail_token, logtail_host) -> None:
     """Run TAPPER."""
 
     if debug:
         logger.add(sys.stderr, level="DEBUG", enqueue=True)
 
-    if logtail is not None:
-        logtail_handler = LogtailHandler(source_token=logtail)
+    if logtail_token is not None:
+        logtail_handler = LogtailHandler(source_token=logtail_token, host=logtail_host)
         logger.add(logtail_handler, level="DEBUG", enqueue=True)
 
     logger.info(f"Running TAPPER version {__version__}...")
