@@ -243,11 +243,13 @@ def run(debug, mqtt_host, logtail_token, logtail_host) -> None:
     """Run TAPPER."""
 
     if debug:
-        logger.add(sys.stderr, level="DEBUG", enqueue=True)
+        logger.add(sys.stderr, level="DEBUG", enqueue=True, colorize=True)
+    else:
+        logger.add(sys.stdout, level="INFO", enqueue=True, colorize=True)
 
     if logtail_token is not None:
         logtail_handler = LogtailHandler(source_token=logtail_token, host=logtail_host)
-        logger.add(logtail_handler, level="DEBUG", enqueue=True)
+        logger.add(logtail_handler, format="{message}", level="DEBUG", enqueue=True)
 
     logger.info(f"Running TAPPER version {__version__}...")
 

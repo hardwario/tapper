@@ -19,4 +19,3 @@ logger.add(
     backtrace=True,
     delay=True,
 )
-logger.add(sys.stdout, level="INFO", enqueue=True, colorize=True)
