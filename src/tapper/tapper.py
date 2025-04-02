@@ -16,6 +16,7 @@ import uvloop
 from adafruit_pn532.spi import PN532_SPI
 from digitalio import DigitalInOut
 from gpiozero import Button, Buzzer
+from logtail import LogtailHandler
 from loguru import logger
 
 from tapper._version import __version__
@@ -52,7 +53,7 @@ class Tapper(PN532_SPI):
         self.mqttc = mqtt.Client()
         self.mqttc.connect(mqtt_host, 1883, 60)
         uvloop.run(self.mqtt_publish("device", "alive"))
-        logger.info("MQTT connected")
+        logger.debug("MQTT connected")
 
         self.tamper_switch: Button = (
             Button(tamper_pin, pull_up=False)
@@ -64,7 +65,7 @@ class Tapper(PN532_SPI):
                 """Tamper switch not initialized. Tamper will always return True."""
             )
 
-        logger.info("TAPPER initialized.")
+        logger.info(f"TAPPER {self.id} initialized.")
 
     @property
     @logger.catch()
@@ -102,9 +103,6 @@ class Tapper(PN532_SPI):
         if self.tamper_switch is not None:
             return self.tamper_switch.is_active
         else:
-            logger.warning(
-                """Tamper switch not initialized. Tamper will always return False."""
-            )
             return True
 
     @logger.catch()
@@ -156,7 +154,7 @@ async def tamper_loop(tapper: Tapper, shutdown_event: asyncio.Event) -> None:
         try:
             if tapper.tamper:  # TODO: negate for production
                 await tapper.mqtt_publish("tamper", "Tamper detected!")
-                logger.warning(f"Tamper detected: {time()}")
+                logger.info(f"Tamper detected: {time()}")
 
                 tapper.buzzer.on()
 
@@ -222,13 +220,12 @@ def main() -> None:
 )
 @logger.catch()
 def version(debug) -> None:
-    """Print the version of the tapper."""
+    """Print the version of TAPPER."""
 
     if debug:
         logger.add(sys.stderr, level="DEBUG", enqueue=True)
 
     click.echo(f"TAPPER version: {click.style(str(__version__), fg='green')}")
-    logger.debug(f"TAPPER version: {__version__}")
 
 
 @main.command(help="Run TAPPER.")
@@ -239,12 +236,17 @@ def version(debug) -> None:
     help="Enable debug mode. (Print debug logs to terminal)",
 )
 @click.option("--mqtt", "mqtt_host", help="MQTT host", required=True)
-@logger.catch()
-def run(debug, mqtt_host) -> None:
+@click.option("--logtail", "logtail", help="Logtail token")
+@logger.catch(level="CRITICAL")
+def run(debug, mqtt_host, logtail) -> None:
     """Run TAPPER."""
 
     if debug:
         logger.add(sys.stderr, level="DEBUG", enqueue=True)
+
+    if logtail is not None:
+        logtail_handler = LogtailHandler(source_token=logtail)
+        logger.add(logtail_handler, level="DEBUG", enqueue=True)
 
     logger.info(f"Running TAPPER version {__version__}...")
 
@@ -256,6 +258,7 @@ def run(debug, mqtt_host) -> None:
     tamper = 20  # TODO: load from config
 
     tapper = Tapper(spi, cs_pin, mqtt_host, tamper, buzzer)
+
     ic, ver, rev, support = tapper.firmware_version
     logger.debug("Found PN532 with firmware version: {0}.{1}".format(ver, rev))
 

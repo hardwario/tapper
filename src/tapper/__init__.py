@@ -1,4 +1,5 @@
 import os
+import sys
 
 from loguru import logger
 
@@ -14,4 +15,8 @@ logger.add(
     retention="3 days",
     level="TRACE",
     enqueue=True,
+    serialize=True,
+    backtrace=True,
+    delay=True,
 )
+logger.add(sys.stdout, level="INFO", enqueue=True, colorize=True)
