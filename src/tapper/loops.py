@@ -38,7 +38,7 @@ async def tamper_loop(tapper: Tapper, shutdown_event: asyncio.Event) -> None:
 
         try:
             if tapper.tamper:  # TODO: negate for production
-                await tapper.mqtt_publish("tamper", "Tamper detected!")
+                await tapper.mqtt_publish("tamper/event", "Tamper detected!")
                 logger.warning(f"Tamper detected: {time()}")
 
                 tapper.buzzer.on()

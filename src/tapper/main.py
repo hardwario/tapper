@@ -15,7 +15,7 @@ def main(mqtt_host, tamper, buzzer):
     tapper = Tapper(spi, cs_pin, mqtt_host, tamper, buzzer)
 
     ic, ver, rev, support = tapper.firmware_version
-    logger.debug("Found PN532 with firmware version: {0}.{1}".format(ver, rev))
+    logger.debug(f"Found PN532 with firmware version: {ver}.{rev}")
 
     logger.debug(f"Tamper switch initial state: {tapper.tamper}")
 

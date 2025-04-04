@@ -57,7 +57,7 @@ class Tapper(PN532_SPI):
                 """Tamper switch not initialized. Tamper will always return True."""
             )
 
-        logger.info(f"TAPPER {self.id} initialized.")
+        logger.info(f"TAPPER <green>{self.id}</> initialized.")
 
     @property
     @logger.catch()
