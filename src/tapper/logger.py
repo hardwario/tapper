@@ -21,7 +21,7 @@ def start(debug, logtail_token, logtail_host) -> None:
             )
             logger.add(logtail_handler, format="{message}", level="DEBUG", enqueue=True)
 
-        except ImportError:
+        except ModuleNotFoundError:
             logger.warning(
                 "Logtail not found. To use this feature install tapper[logtail]."
             )
