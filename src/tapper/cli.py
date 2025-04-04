@@ -49,7 +49,7 @@ def run(debug, mqtt_host, logtail_token, logtail_host) -> None:
 
     tapper.logger.start(debug, logtail_token, logtail_host)
 
-    logger.info(f"Running TAPPER version {__version__}...")
+    logger.info(f"Running TAPPER version {__version__}")
 
     buzzer = 18  # TODO: load from config
 
