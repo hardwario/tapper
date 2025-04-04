@@ -24,7 +24,6 @@ dependencies = [
 tapper = "tapper:cli.cli"
 
 [project.optional-dependencies]
-lgpio = []
 logtail = [
     "logtail-python>=0.3.3",
 ]
