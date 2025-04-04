@@ -1,12 +1,11 @@
 import os
-import sys
 
 from loguru import logger
 
-if not os.path.exists(os.path.join("~", ".tapper", "logs")):
-    os.makedirs(os.path.join("~", ".tapper", "logs"), exist_ok=True)
-
 homedir = os.path.expanduser("~")
+
+if not os.path.exists(os.path.join(homedir, ".tapper/logs/tapper_{time}.log")):
+    os.makedirs(os.path.join(homedir, ".tapper/logs/tapper_{time}.log"), exist_ok=True)
 
 logger.remove()
 logger.add(

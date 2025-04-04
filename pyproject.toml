@@ -13,7 +13,6 @@ dependencies = [
     "click>=8.1.8",
     "gpiozero>=2.0.1",
     "lgpio",
-    "logtail-python",
     "loguru>=0.7.3",
     "paho-mqtt>=2.1.0",
     "psutil>=7.0.0",
@@ -22,7 +21,13 @@ dependencies = [
 ]
 
 [project.scripts]
-tapper = "tapper:tapper.main"
+tapper = "tapper:cli.cli"
+
+[project.optional-dependencies]
+lgpio = []
+logtail = [
+    "logtail-python>=0.3.3",
+]
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]

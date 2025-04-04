@@ -906,12 +906,16 @@ dependencies = [
     { name = "click" },
     { name = "gpiozero" },
     { name = "lgpio" },
-    { name = "logtail-python" },
     { name = "loguru" },
     { name = "paho-mqtt" },
     { name = "psutil" },
     { name = "pyyaml" },
     { name = "uvloop" },
+]
+
+[package.optional-dependencies]
+logtail = [
+    { name = "logtail-python" },
 ]
 
 [package.dev-dependencies]
@@ -927,13 +931,14 @@ requires-dist = [
     { name = "click", specifier = ">=8.1.8" },
     { name = "gpiozero", specifier = ">=2.0.1" },
     { name = "lgpio" },
-    { name = "logtail-python" },
+    { name = "logtail-python", marker = "extra == 'logtail'", specifier = ">=0.3.3" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "paho-mqtt", specifier = ">=2.1.0" },
     { name = "psutil", specifier = ">=7.0.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "uvloop", specifier = ">=0.21.0" },
 ]
+provides-extras = ["lgpio", "logtail"]
 
 [package.metadata.requires-dev]
 dev = [
