@@ -1,4 +1,5 @@
 import asyncio
+import json
 import signal
 from time import time
 
@@ -63,6 +64,17 @@ async def heartbeat_loop(tapper: Tapper, shutdown_event: asyncio.Event) -> None:
                 "memory": psutil.virtual_memory().percent,
                 "disk": psutil.disk_usage("/").percent,
             },
+        )
+        logger.debug(
+            json.dumps(
+                {
+                    "id": tapper.id,
+                    "cpu": psutil.cpu_percent(),
+                    "uptime": f"{time() - psutil.boot_time()}",
+                    "memory": psutil.virtual_memory().percent,
+                    "disk": psutil.disk_usage("/").percent,
+                }
+            )
         )
 
         try:
