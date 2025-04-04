@@ -1,5 +1,6 @@
 """The Command Line Interface for TAPPER"""
 
+import json
 import sys
 
 import click
@@ -7,6 +8,7 @@ from loguru import logger
 
 import tapper.logger
 from tapper._version import __version__
+from tapper.config import load_config
 from tapper.main import main
 
 
@@ -34,6 +36,7 @@ def version(debug) -> None:
 
 
 @cli.command(help="Run TAPPER.")
+@click.option("-c", "--config", "filepath", help="TAPPER configuration file")
 @click.option(
     "-d",
     "--debug",
@@ -44,15 +47,28 @@ def version(debug) -> None:
 @click.option("-lt", "--logtail", "logtail_token", help="Logtail token")
 @click.option("-lh", "--logtail_host", "logtail_host", help="Logtail host")
 @logger.catch(level="CRITICAL")
-def run(debug, mqtt_host, logtail_token, logtail_host) -> None:
+def run(debug, mqtt_host, logtail_token, logtail_host, filepath) -> None:
     """Run TAPPER."""
-
-    tapper.logger.start(debug, logtail_token, logtail_host)
 
     logger.info(f"Running TAPPER version {__version__}")
 
-    buzzer = 18  # TODO: load from config
+    if filepath is not None:
+        config = load_config(filepath)
+        click.echo(json.dumps(config, indent=2))  # TODO: Remove after Development
 
-    tamper = 20  # TODO: load from config
+        buzzer = config["pins"]["buzzer"]
+        tamper = config["pins"]["tamper"]
+
+        mqtt_host = config["mqtt"]["host"]
+
+        logtail_token = config["logtail"]["token"]
+        logtail_host = config["logtail"]["host"]
+
+    else:
+        buzzer = 18
+
+        tamper = 20
+
+    tapper.logger.start(debug, logtail_token, logtail_host)
 
     main(mqtt_host, tamper, buzzer)
