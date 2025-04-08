@@ -4,7 +4,7 @@ from loguru import logger
 
 
 @logger.catch
-def start(debug, logtail_token, logtail_host) -> None:
+def start(debug: bool, logtail_token: str = None, logtail_host: str = None) -> None:
     """Logger setup for TAPPER run"""
 
     if debug:
@@ -27,4 +27,4 @@ def start(debug, logtail_token, logtail_host) -> None:
             )
             pass
 
-        logger.level("HEARTBEAT", no=15, color="<blue>")
+    logger.level("HEARTBEAT", no=15, color="<blue>")

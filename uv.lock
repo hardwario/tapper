@@ -938,7 +938,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "uvloop", specifier = ">=0.21.0" },
 ]
-provides-extras = ["lgpio", "logtail"]
+provides-extras = ["logtail"]
 
 [package.metadata.requires-dev]
 dev = [
