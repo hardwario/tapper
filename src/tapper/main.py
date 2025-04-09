@@ -1,3 +1,5 @@
+from time import sleep
+
 import board
 import busio
 import uvloop
@@ -8,6 +10,7 @@ from tapper.loops import loops
 from tapper.tapper import Tapper
 
 
+@logger.catch()
 def main(mqtt_host, tamper, buzzer):
     spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
     cs_pin = DigitalInOut(board.D8)  # TODO: load from config
@@ -21,3 +24,21 @@ def main(mqtt_host, tamper, buzzer):
 
     # Run loop
     uvloop.run(loops(tapper))
+
+
+@logger.catch()
+async def process_tag(self, uid: bytearray) -> None:
+    """Process UID of a detected NFC tag.
+    Log tag UID, activate buzzer and send MQTT message."""
+
+    logger.debug(f"Processing tag: {' '.join([hex(i) for i in uid])}")
+
+    await self.lock_buzzer.acquire()
+    try:
+        self.buzzer.on()
+        sleep(0.1)
+        self.buzzer.off()
+    finally:
+        self.lock_buzzer.release()
+
+    await self.mqtt_publish("tag", uid)

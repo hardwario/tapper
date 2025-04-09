@@ -3,7 +3,7 @@
 import asyncio
 import json
 import uuid
-from time import sleep, time
+from time import time
 
 import busio
 import paho.mqtt.client as mqtt
@@ -96,20 +96,3 @@ class Tapper(PN532_SPI):
             return self.tamper_switch.is_active
         else:
             return True
-
-    @logger.catch()
-    async def process_tag(self, uid: bytearray) -> None:
-        """Process UID of a detected NFC tag.
-        Log tag UID and activate buzzer."""
-
-        logger.debug(f"Processing tag: {' '.join([hex(i) for i in uid])}")
-
-        await self.lock_buzzer.acquire()
-        try:
-            self.buzzer.on()
-            sleep(0.1)
-            self.buzzer.off()
-        finally:
-            self.lock_buzzer.release()
-
-        await self.mqtt_publish("tag", f"{' '.join([hex(i) for i in uid])}")
