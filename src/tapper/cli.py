@@ -57,17 +57,13 @@ def run(debug, mqtt_host, logtail_token, logtail_host, filepath) -> None:
         config = load_config(filepath)
         click.echo(json.dumps(config, indent=2))  # TODO: Remove after Development
 
-        buzzer = config["pins"]["buzzer"]
-        tamper = config["pins"]["tamper"]
-
         mqtt_host = config["mqtt"]["host"]
 
         logtail_token = config["logtail"]["token"]
         logtail_host = config["logtail"]["host"]
 
-    else:
-        buzzer = 18
-        tamper = 20
+    buzzer = 18
+    tamper = 20
 
     if mqtt_host is None:
         raise click.UsageError("MQTT host not specified!")
