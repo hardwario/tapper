@@ -55,7 +55,7 @@ def run(debug, mqtt_host, logtail_token, logtail_host, filepath) -> None:
 
     if filepath is not None:
         config = load_config(filepath)
-        click.echo(json.dumps(config, indent=2))  # TODO: Remove after Development
+        logger.debug("Config loaded: " + json.dumps(config, indent=2))
 
         mqtt_host = config["mqtt"]["host"]
 
