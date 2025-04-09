@@ -13,9 +13,6 @@ from digitalio import DigitalInOut
 from gpiozero import Button, Buzzer
 from loguru import logger
 
-# TODO: add config file parsing (yaml)
-# TODO: add config file path argument
-
 
 class Tapper(PN532_SPI):
     """Class for TAPPER.

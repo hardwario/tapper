@@ -46,9 +46,10 @@ def version(debug) -> None:
 @click.option("-h", "--mqtt", "mqtt_host", help="MQTT host")
 @click.option("-lt", "--logtail", "logtail_token", help="Logtail token")
 @click.option("-lh", "--logtail_host", "logtail_host", help="Logtail host")
-@logger.catch(level="CRITICAL")
+@logger.catch(level="CRITICAL", reraise=True)
 def run(debug, mqtt_host, logtail_token, logtail_host, filepath) -> None:
     """Run TAPPER."""
+    # TODO: add config file parsing (yaml)
 
     logger.info(f"Running TAPPER version {__version__}")
 
@@ -68,8 +69,8 @@ def run(debug, mqtt_host, logtail_token, logtail_host, filepath) -> None:
         buzzer = 18
         tamper = 20
 
-        if mqtt_host is None:
-            raise click.UsageError("MQTT host not specified")
+    if mqtt_host is None:
+        raise click.UsageError("MQTT host not specified!")
 
     tapper.logger.start(debug, logtail_token, logtail_host)
 
