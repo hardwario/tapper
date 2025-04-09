@@ -51,6 +51,8 @@ def run(debug, mqtt_host, logtail_token, logtail_host, filepath) -> None:
     """Run TAPPER."""
     # TODO: add config file parsing (yaml)
 
+    tapper.logger.start(debug, logtail_token, logtail_host)
+
     logger.info(f"Running TAPPER version {__version__}")
 
     if filepath is not None:
@@ -67,7 +69,5 @@ def run(debug, mqtt_host, logtail_token, logtail_host, filepath) -> None:
 
     if mqtt_host is None:
         raise click.UsageError("MQTT host not specified!")
-
-    tapper.logger.start(debug, logtail_token, logtail_host)
 
     main(mqtt_host, tamper, buzzer)
