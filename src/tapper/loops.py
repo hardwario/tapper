@@ -71,8 +71,8 @@ async def heartbeat_loop(tapper: Tapper, shutdown_event: asyncio.Event) -> None:
                 {
                     "heartbeat": {
                         "id": tapper.id,
-                        "cpu": psutil.cpu_percent(),
                         "uptime": f"{time() - psutil.boot_time()}",
+                        "cpu": psutil.cpu_percent(),
                         "memory": psutil.virtual_memory().percent,
                         "disk": psutil.disk_usage("/").percent,
                     }
