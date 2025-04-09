@@ -41,4 +41,4 @@ async def process_tag(tapper: Tapper, uid: bytearray) -> None:
     finally:
         tapper.lock_buzzer.release()
 
-    await tapper.mqtt_publish("tag", uid)
+    await tapper.mqtt_publish("tag", [hex(i) for i in uid])
