@@ -49,20 +49,23 @@ def version(debug) -> None:
 @logger.catch(level="CRITICAL", reraise=True)
 def run(debug, mqtt_host, logtail_token, logtail_host, filepath) -> None:
     """Run TAPPER."""
-    # TODO: add config file parsing (yaml)
-
-    tapper.logger.start(debug, logtail_token, logtail_host)
-
-    logger.info(f"Running TAPPER version {__version__}")
 
     if filepath is not None:
         config = load_config(filepath)
-        logger.debug("Config loaded: " + json.dumps(config))
 
         mqtt_host = config["mqtt"]["host"]
 
         logtail_token = config["logtail"]["token"]
         logtail_host = config["logtail"]["host"]
+
+        tapper.logger.start(debug, logtail_token, logtail_host)
+
+        logger.debug("Config loaded: " + json.dumps(config))
+
+    else:
+        tapper.logger.start(debug, logtail_token, logtail_host)
+
+    logger.info(f"Running TAPPER version {__version__}")
 
     buzzer = 18
     tamper = 20
