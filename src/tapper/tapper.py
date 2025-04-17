@@ -41,7 +41,7 @@ class Tapper(PN532_SPI):
 
         try:
             self.mqtt_client = mqtt.Client()
-            self.mqtt_client.client_id = self.id
+            self.mqtt_client.client_id = "TAPPER " + self.id
             self.mqtt_client.connect(mqtt_host, 1883, 60)
         except TimeoutError:
             logger.exception(
