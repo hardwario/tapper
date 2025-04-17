@@ -16,7 +16,7 @@ async def cleanup(tapper: Tapper) -> None:
     logger.info("Cleaning up...")
     tapper.buzzer.off()
     await tapper.mqtt_publish("device", "shutdown")
-    tapper.mqttc.disconnect()
+    tapper.mqtt_client.disconnect()
     logger.info("Cleanup complete.")
 
 

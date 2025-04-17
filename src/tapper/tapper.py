@@ -19,14 +19,14 @@ class Tapper(PN532_SPI):
     Inherits from PN532_SPI class.
     Adds additional functionality for TAPPER."""
 
-    @logger.catch()
+    @logger.catch(reraise=True)
     def __init__(
         self,
         spi: busio.SPI,
         cs_pin: DigitalInOut,
         mqtt_host: str,
-        tamper_pin: int | str = None,
-        buzzer_pin: int | str = None,
+        tamper_pin: int | str = 20,
+        buzzer_pin: int | str = 18,
     ) -> None:
         """Initialize TAPPER."""
 
@@ -36,19 +36,23 @@ class Tapper(PN532_SPI):
         self.lock_mqtt = asyncio.Lock()
         self.lock_nfc = asyncio.Lock()
 
-        self.buzzer: Buzzer = Buzzer(buzzer_pin) if buzzer_pin else Buzzer(18)
+        self.buzzer: Buzzer = Buzzer(buzzer_pin)
         self.buzzer.off()
 
-        self.mqttc = mqtt.Client()
-        self.mqttc.connect(mqtt_host, 1883, 60)
+        try:
+            self.mqtt_client = mqtt.Client()
+            self.mqtt_client.connect(mqtt_host, 1883, 60)
+        except TimeoutError:
+            logger.exception(
+                "MQTT connection timed out, do you have the correct host?",
+                level="CRITICAL",
+            )
+            quit(113)
+
         uvloop.run(self.mqtt_publish("device", "alive"))
         logger.debug("MQTT connected")
 
-        self.tamper_switch: Button = (
-            Button(tamper_pin, pull_up=False)
-            if tamper_pin
-            else Button(20, pull_up=False)
-        )
+        self.tamper_switch: Button = Button(tamper_pin, pull_up=False)
         if self.tamper_switch is None:
             logger.warning(
                 """Tamper switch not initialized. Tamper will always return True."""
@@ -80,7 +84,7 @@ class Tapper(PN532_SPI):
 
         await self.lock_mqtt.acquire()
         try:
-            self.mqttc.publish(topic, message)
+            self.mqtt_client.publish(topic, message)
         finally:
             self.lock_mqtt.release()
 
