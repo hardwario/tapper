@@ -60,7 +60,7 @@ def run(debug, mqtt_host, logtail_token, logtail_host, filepath) -> None:
 
         tapper.logger.start(debug, logtail_token, logtail_host)
 
-        logger.debug("Config loaded: " + json.dumps(config))
+        logger.debug("Config loaded: " + str(json.dumps(config)))
 
     else:
         tapper.logger.start(debug, logtail_token, logtail_host)
