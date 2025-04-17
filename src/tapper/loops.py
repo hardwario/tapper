@@ -68,7 +68,7 @@ async def heartbeat_loop(tapper: Tapper, shutdown_event: asyncio.Event) -> None:
                 "disk": psutil.disk_usage("/").percent,
             },
         )
-        logger.debug(
+        logger.trace(
             json.dumps(
                 {
                     "heartbeat": {
