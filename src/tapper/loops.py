@@ -25,7 +25,7 @@ async def tag_loop(tapper: Tapper, shutdown_event: asyncio.Event) -> None:
     while not shutdown_event.is_set():
         uid = tapper.read_passive_target(timeout=0.5)
         if uid is not None:
-            logger.info(f"Tag detected: {' '.join([format(i, '#02x') for i in uid])}")
+            logger.info(f"Tag detected: {' '.join([format(i, '#04x') for i in uid])}")
             logger.debug(f"UID: {uid}")
             await main.process_tag(tapper, uid)
 
