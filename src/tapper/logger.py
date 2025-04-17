@@ -26,5 +26,3 @@ def start(debug: bool, logtail_token: str = None, logtail_host: str = None) -> N
                 "Logtail not found. To use this feature install tapper[logtail]."
             )
             pass
-
-    logger.level("HEARTBEAT", no=15, color="<blue>")

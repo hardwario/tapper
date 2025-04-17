@@ -31,7 +31,7 @@ async def process_tag(tapper: Tapper, uid: bytearray) -> None:
     """Process UID of a detected NFC tag.
     Log tag UID, activate buzzer and send MQTT message."""
 
-    logger.debug(f"Processing tag: {' '.join([hex(i) for i in uid])}")
+    logger.debug(f"Processing tag: {' '.join([format(i, '#02x') for i in uid])}")
 
     await tapper.lock_buzzer.acquire()
     try:
@@ -41,4 +41,4 @@ async def process_tag(tapper: Tapper, uid: bytearray) -> None:
     finally:
         tapper.lock_buzzer.release()
 
-    await tapper.mqtt_publish("tag", [hex(i) for i in uid])
+    await tapper.mqtt_publish("tag", [format(i, "#02x") for i in uid])

@@ -14,7 +14,7 @@ from tapper.main import main
 
 @click.group()
 def cli() -> None:
-    """Define click group"""
+    """Define a click group"""
     pass
 
 
