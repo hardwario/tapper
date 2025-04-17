@@ -3,7 +3,7 @@
 import asyncio
 import json
 import uuid
-from time import time
+from time import sleep, time
 
 import busio
 import paho.mqtt.client as mqtt
@@ -47,6 +47,7 @@ class Tapper(PN532_SPI):
                 "MQTT connection timed out, do you have the correct host?",
                 level="CRITICAL",
             )
+            sleep(2)  # Let logtail finish
             quit(113)
 
         uvloop.run(self.mqtt_publish("device", "alive"))

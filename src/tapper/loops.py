@@ -1,7 +1,7 @@
 import asyncio
 import json
 import signal
-from time import time
+from time import sleep, time
 
 import psutil
 from loguru import logger
@@ -18,6 +18,7 @@ async def cleanup(tapper: Tapper) -> None:
     await tapper.mqtt_publish("device", "shutdown")
     tapper.mqtt_client.disconnect()
     logger.info("Cleanup complete.")
+    sleep(2)  # Let logtail finish
 
 
 @logger.catch()
