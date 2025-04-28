@@ -7,6 +7,7 @@ and an internal mqtt client implementation.
 
 import asyncio
 import json
+import sys
 import time
 import uuid
 
@@ -61,7 +62,14 @@ class Tapper(adafruit_pn532.spi.PN532_SPI):
                 level="CRITICAL",
             )
             time.sleep(2)  # Let logtail finish
-            quit(113)
+            sys.exit(110)
+        except OSError:
+            logger.exception(
+                f"MQTT connection failed, do you have the correct host? Current host: {mqtt_host}",
+                level="CRITICAL",
+            )
+            time.sleep(2)  # Let logtail finish
+            sys.exit(113)
 
         uvloop.run(self.mqtt_publish("device", "alive"))
         logger.debug("MQTT connected")
