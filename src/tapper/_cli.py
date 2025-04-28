@@ -6,7 +6,9 @@ This module provides a basic command-line tool for the TAPPER client.
 import json
 import sys
 
+import board
 import click
+import digitalio
 import yaml
 from loguru import logger
 
@@ -87,8 +89,9 @@ def _run(
 
     buzzer_pin: int = 18
     tamper_pin: int = 20
+    cs_pin: digitalio.DigitalInOut = digitalio.DigitalInOut(board.D8)
 
     if mqtt_host is None:
         raise click.UsageError("MQTT host not specified!")
 
-    tapper_main.main(mqtt_host, tamper_pin, buzzer_pin)
+    tapper_main.main(mqtt_host, tamper_pin, buzzer_pin, cs_pin)
