@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 [project.scripts]
-tapper = "tapper:cli.cli"
+tapper = "tapper:_cli._cli"
 
 [project.optional-dependencies]
 logtail = [
@@ -43,3 +43,12 @@ dev = [
 
 [tool.hatch.build.hooks.version]
 path = "src/tapper/_version.py"
+
+[tool.ruff.lint]
+select = ["D",
+    "D204",
+    "I",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

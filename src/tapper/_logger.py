@@ -4,9 +4,10 @@ from loguru import logger
 
 
 @logger.catch
-def start(debug: bool, logtail_token: str = None, logtail_host: str = None) -> None:
-    """Logger setup for TAPPER run"""
-
+def logger_start(
+    debug: bool, logtail_token: str = None, logtail_host: str = None
+) -> None:
+    """Set up Logger for TAPPER run."""
     if debug:
         logger.add(sys.stderr, level="DEBUG", enqueue=True, colorize=True)
     else:
@@ -14,9 +15,9 @@ def start(debug: bool, logtail_token: str = None, logtail_host: str = None) -> N
 
     if logtail_token is not None:
         try:
-            from logtail import LogtailHandler
+            import logtail
 
-            logtail_handler = LogtailHandler(
+            logtail_handler = logtail.LogtailHandler(
                 source_token=logtail_token, host=logtail_host
             )
             logger.add(logtail_handler, format="{message}", level="DEBUG", enqueue=True)

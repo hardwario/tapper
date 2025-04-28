@@ -1,71 +1,88 @@
-"""Package for use with HARDWARIO TAPPER"""
+"""Define the Tapper class.
+
+This package defines the Tapper class for use with HARDWARIO TAPPER hardware.
+It extends the Adafruit PN532 circuit python implementation by Tamper switch, UID of host,
+and an internal mqtt client implementation.
+"""
 
 import asyncio
 import json
+import time
 import uuid
-from time import sleep, time
 
+import adafruit_pn532.spi
 import busio
-import paho.mqtt.client as mqtt
+import digitalio
+import gpiozero
 import uvloop
-from adafruit_pn532.spi import PN532_SPI
-from digitalio import DigitalInOut
-from gpiozero import Button, Buzzer
 from loguru import logger
+from paho.mqtt import client as mqtt
 
 
-class Tapper(PN532_SPI):
+class Tapper(adafruit_pn532.spi.PN532_SPI):
     """Class for TAPPER.
-    Inherits from PN532_SPI class.
-    Adds additional functionality for TAPPER."""
+
+    Inherits from the PN532_SPI class and adds additional features for TAPPER.
+    """
 
     @logger.catch(reraise=True)
     def __init__(
         self,
         spi: busio.SPI,
-        cs_pin: DigitalInOut,
+        cs_pin: digitalio.DigitalInOut,
         mqtt_host: str,
-        tamper_pin: int | str = 20,
-        buzzer_pin: int | str = 18,
+        tamper_pin: int = 20,
+        buzzer_pin: int = 18,
     ) -> None:
-        """Initialize TAPPER."""
+        """Initialize TAPPER.
 
+        Args:
+            spi (): pin for an SPI device
+            cs_pin (): pin for chip select
+            mqtt_host (): address of the MQTT broker
+            tamper_pin (): pin of the tamper switch
+            buzzer_pin (): pin of the buzzer
+        """
         super().__init__(spi, cs_pin)
 
         self.lock_buzzer = asyncio.Lock()
         self.lock_mqtt = asyncio.Lock()
         self.lock_nfc = asyncio.Lock()
 
-        self.buzzer: Buzzer = Buzzer(buzzer_pin)
+        self.buzzer: gpiozero.Buzzer = gpiozero.Buzzer(buzzer_pin)
         self.buzzer.off()
 
         try:
-            self.mqtt_client = mqtt.Client(client_id="TAPPER " + self.id)
+            self.mqtt_client = mqtt.Client(client_id="TAPPER " + self.get_id())
             self.mqtt_client.connect(mqtt_host, 1883, 60)
         except TimeoutError:
             logger.exception(
-                "MQTT connection timed out, do you have the correct host?",
+                f"MQTT connection timed out, do you have the correct host? Current host: {mqtt_host}",
                 level="CRITICAL",
             )
-            sleep(2)  # Let logtail finish
+            time.sleep(2)  # Let logtail finish
             quit(113)
 
         uvloop.run(self.mqtt_publish("device", "alive"))
         logger.debug("MQTT connected")
 
-        self.tamper_switch: Button = Button(tamper_pin, pull_up=False)
-        if self.tamper_switch is None:
+        self._tamper_switch: gpiozero.Button = gpiozero.Button(
+            tamper_pin, pull_up=False
+        )
+        if self._tamper_switch is None:
             logger.warning(
                 """Tamper switch not initialized. Tamper will always return True."""
             )
 
-        logger.info(f"TAPPER {self.id} initialized.")
+        logger.info(f"TAPPER {self.get_id()} initialized.")
 
-    @property
     @logger.catch()
-    def id(self) -> str:
-        """Return MAC address."""
+    def get_id(self) -> str:
+        """Return MAC address.
 
+        Returns:
+            str: the uuid of the TAPPER in a human-readable format aa:bb:cc:dd:ee:ff
+        """
         mac_int = uuid.getnode()
         tapper_id = ":".join(
             f"{(mac_int >> i) & 0xFF:02x}"  # Get one byte, format as 2-digit hex
@@ -76,12 +93,16 @@ class Tapper(PN532_SPI):
 
     @logger.catch()
     async def mqtt_publish(self, topic: str, payload: any) -> None:
-        """Publish message to MQTT broker."""
+        """Publish a message to TAPPER's MQTT broker.
 
-        topic = f"tapper/{self.id}/{topic}"
+        Args:
+            topic (str): the topic of the MQTT message
+            payload (): the payload of the MQTT message
+        """
+        topic = f"tapper/{self.get_id()}/{topic}"
         logger.debug(f"Publishing MQTT message {topic} {payload}")
 
-        message = json.dumps({"timestamp": time(), "payload": payload})
+        message: str = json.dumps({"timestamp": time.time(), "payload": payload})
 
         await self.lock_mqtt.acquire()
         try:
@@ -89,12 +110,15 @@ class Tapper(PN532_SPI):
         finally:
             self.lock_mqtt.release()
 
-    @property
     @logger.catch()
-    def tamper(self) -> bool:
-        """Get state of tamper switch."""
+    def get_tamper(self) -> bool:
+        """Get state of tamper switch.
 
-        if self.tamper_switch is not None:
-            return self.tamper_switch.is_active
+        Returns:
+            bool: state of tamper switch
+
+        """
+        if self._tamper_switch is not None:
+            return self._tamper_switch.is_active
         else:
             return True
