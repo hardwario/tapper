@@ -71,7 +71,7 @@ def _run(
     """
     if path is not None:
         with open(path, "r") as file:
-            config: dict = yaml.load(file, Loader=yaml.Loader)
+            config: dict = yaml.safe_load(file)
 
         mqtt_host: str = config["mqtt"]["host"]
 

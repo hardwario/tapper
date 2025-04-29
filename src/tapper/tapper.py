@@ -11,16 +11,16 @@ import sys
 import time
 import uuid
 
-import adafruit_pn532.spi
 import busio
 import digitalio
 import gpiozero
 import uvloop
+from adafruit_pn532 import spi as pn532
 from loguru import logger
 from paho.mqtt import client as mqtt
 
 
-class Tapper(adafruit_pn532.spi.PN532_SPI):
+class Tapper(pn532.PN532_SPI):
     """Class for TAPPER.
 
     Inherits from the PN532_SPI class and adds additional features for TAPPER.
