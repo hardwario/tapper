@@ -28,7 +28,7 @@ def main(mqtt_host: str, tamper_pin: int, buzzer: int, cs_pin: digitalio.Digital
     ic, ver, rev, support = tapper_instance.firmware_version
     logger.debug(f"Found PN532 with firmware version: {ver}.{rev}")
 
-    logger.debug(f"Tamper switch initial state: {tapper_instance.get_tamper}")
+    logger.debug(f"Tamper switch initial state: {tapper_instance.get_tamper()}")
 
     uvloop.run(tapper._loops.loops(tapper_instance))
 
