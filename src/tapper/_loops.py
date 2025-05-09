@@ -92,7 +92,7 @@ async def _heartbeat_loop(
         await tapper_instance.mqtt_publish(
             "heartbeat",
             {
-                "id": tapper_instance.get_id,
+                "id": tapper_instance.get_id(),
                 "uptime": f"{time() - psutil.boot_time()}",
                 "cpu": psutil.cpu_percent(),
                 "memory": psutil.virtual_memory().percent,
