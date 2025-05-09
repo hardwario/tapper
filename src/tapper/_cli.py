@@ -29,6 +29,7 @@ def _cli() -> None:
     "--debug",
     is_flag=True,
     help="Enable debug mode. (Print debug logs to terminal)",
+    hidden=True,
 )
 @logger.catch()
 def _version(debug: bool) -> None:
@@ -52,6 +53,7 @@ def _version(debug: bool) -> None:
     "--debug",
     is_flag=True,
     help="Enable debug mode - print debug logs to terminal",
+    hidden=True,
 )
 @click.option("-h", "--mqtt", "mqtt_host", help="MQTT host")
 @click.option("-lt", "--logtail", "logtail_token", help="Logtail token")
