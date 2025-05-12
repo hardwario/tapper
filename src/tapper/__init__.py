@@ -36,4 +36,5 @@ logger.add(
     serialize=True,
     backtrace=True,
     delay=True,
+    colorize=True,
 )

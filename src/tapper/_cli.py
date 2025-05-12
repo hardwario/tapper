@@ -38,8 +38,7 @@ def _version(debug: bool) -> None:
     Args:
         debug (bool): enable debug mode - print debug logs to terminal
     """
-    if debug:
-        logger.add(sys.stderr, level="DEBUG", enqueue=True)
+    tapper_logger.logger_start(debug)
 
     click.echo(
         f"TAPPER version: {click.style(str(tapper_version.__version__), fg='green')}"
@@ -77,8 +76,12 @@ def _run(
 
         mqtt_host: str = config["mqtt"]["host"]
 
-        logtail_token: str = config["logtail"]["token"]
-        logtail_host: str = config["logtail"]["host"]
+        try:
+            logtail_token: str = config["logtail"]["token"]
+            logtail_host: str = config["logtail"]["host"]
+        except KeyError:
+            logtail_host: None = None
+            logtail_token: None = None
 
         tapper_logger.logger_start(debug, logtail_token, logtail_host)
 
