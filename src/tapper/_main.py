@@ -39,7 +39,8 @@ async def process_tag(tapper_instance: tapper.Tapper, uid: bytearray) -> None:
 
     Log tag UID, activate the buzzer, and send MQTT message.
     """
-    logger.debug(f"Processing tag: {' '.join([format(i, '#04x') for i in uid])}")
+    str_uid = "".join([format(i, "02x").lower() for i in uid])
+    logger.debug(f"Processing tag: {''.join([format(i, '02x').lower() for i in uid])}")
 
     await tapper_instance.lock_buzzer.acquire()
     try:
@@ -50,5 +51,5 @@ async def process_tag(tapper_instance: tapper.Tapper, uid: bytearray) -> None:
         tapper_instance.lock_buzzer.release()
 
     await tapper_instance.mqtt_publish(
-        "event/tag", {"id": [format(i, "#04x") for i in uid]}
+        "event/tag", {"id": "".join([format(i, "02x").lower() for i in uid])}
     )

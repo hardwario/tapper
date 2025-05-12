@@ -39,7 +39,9 @@ async def _tag_loop(
     while not shutdown_event.is_set():
         uid: bytearray = tapper_instance.read_passive_target(timeout=0.5)
         if uid is not None:
-            logger.info(f"Tag detected: {' '.join([format(i, '#04x') for i in uid])}")
+            logger.info(
+                f"Tag detected: {''.join([format(i, '02x').lower() for i in uid])}"
+            )
             logger.debug(f"UID: {uid}")
 
             await main.process_tag(tapper_instance, uid)
