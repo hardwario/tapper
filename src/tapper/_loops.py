@@ -17,7 +17,6 @@ async def _cleanup(tapper_instance: tapper.Tapper) -> None:
 
     tapper_instance.buzzer.off()
 
-    await tapper_instance.mqtt_publish("device", "shutdown")
     tapper_instance.mqtt_client.disconnect()
 
     logger.info("Cleanup complete.")
@@ -90,26 +89,39 @@ async def _heartbeat_loop(
         shutdown_event (asyncio.Event): event to signal the shutdown event
     """
     while not shutdown_event.is_set():
+        cpu_temperature = psutil.sensors_temperatures()["cpu_thermal"][0]
         await tapper_instance.mqtt_publish(
-            "heartbeat",
+            "stats",
             {
-                "id": tapper_instance.get_id(),
-                "uptime": f"{time() - psutil.boot_time()}",
-                "cpu": psutil.cpu_percent(),
-                "memory": psutil.virtual_memory().percent,
-                "disk": psutil.disk_usage("/").percent,
+                "system": {
+                    "uptime": f"{time() - psutil.boot_time()}",
+                    "cpu": psutil.cpu_percent(),
+                    "memory": psutil.virtual_memory().percent,
+                    "disk": psutil.disk_usage("/").percent,
+                    "temperature": cpu_temperature.current,
+                },
+                "tamper": {
+                    "state": "active" if tapper_instance.get_tamper() else "inactive"
+                },
             },
         )
         logger.trace(
             json.dumps(
                 {
-                    "heartbeat": {
-                        "id": tapper_instance.get_id(),
-                        "uptime": f"{time() - psutil.boot_time()}",
-                        "cpu": psutil.cpu_percent(),
-                        "memory": psutil.virtual_memory().percent,
-                        "disk": psutil.disk_usage("/").percent,
-                    }
+                    "stats": {
+                        "system": {
+                            "uptime": f"{time() - psutil.boot_time()}",
+                            "cpu": psutil.cpu_percent(),
+                            "memory": psutil.virtual_memory().percent,
+                            "disk": psutil.disk_usage("/").percent,
+                            "temperature": cpu_temperature.current,
+                        },
+                        "tamper": {
+                            "state": "active"
+                            if tapper_instance.get_tamper()
+                            else "inactive"
+                        },
+                    },
                 }
             ),
         )
