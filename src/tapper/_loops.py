@@ -58,14 +58,15 @@ async def _tamper_loop(
         tapper_instance (tapper.Tapper): the Tapper instance
         shutdown_event (asyncio.Event): event to signal the shutdown event
     """
-    await tapper_instance.mqtt_publish("tamper/init", tapper_instance.get_tamper())
-
     while not shutdown_event.is_set():
         await tapper_instance.lock_buzzer.acquire()
 
         try:
             if tapper_instance.get_tamper():  # TODO: negate for production
-                await tapper_instance.mqtt_publish("tamper/event", "Tamper detected!")
+                await tapper_instance.mqtt_publish(
+                    "event/tamper",
+                    {"state": "active" if tapper_instance.get_tamper() else "inactive"},
+                )
                 logger.warning(f"Tamper detected: {time()}")
 
                 tapper_instance.buzzer.on()

@@ -71,7 +71,12 @@ class Tapper(pn532.PN532_SPI):
             time.sleep(2)  # Let logtail finish
             sys.exit(113)
 
-        uvloop.run(self.mqtt_publish("device", "alive"))
+        uvloop.run(
+            self.mqtt_publish(
+                "event/boot",
+                {},
+            )
+        )
         logger.debug("MQTT connected")
 
         self._tamper_switch: gpiozero.Button = gpiozero.Button(
@@ -100,7 +105,7 @@ class Tapper(pn532.PN532_SPI):
         return tapper_id
 
     @logger.catch()
-    async def mqtt_publish(self, topic: str, payload: any) -> None:
+    async def mqtt_publish(self, topic: str, payload: dict) -> None:
         """Publish a message to TAPPER's MQTT broker.
 
         Args:

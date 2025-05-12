@@ -44,9 +44,11 @@ async def process_tag(tapper_instance: tapper.Tapper, uid: bytearray) -> None:
     await tapper_instance.lock_buzzer.acquire()
     try:
         tapper_instance.buzzer.on()
-        sleep(0.1)
+        sleep(0.125)
         tapper_instance.buzzer.off()
     finally:
         tapper_instance.lock_buzzer.release()
 
-    await tapper_instance.mqtt_publish("tag", [format(i, "#04x") for i in uid])
+    await tapper_instance.mqtt_publish(
+        "event/tag", {"id": [format(i, "#04x") for i in uid]}
+    )
