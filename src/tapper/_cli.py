@@ -56,7 +56,7 @@ def _version(debug: bool) -> None:
 @click.option("-h", "--mqtt", "mqtt_host", help="MQTT host")
 @click.option("-lt", "--logtail", "logtail_token", help="Logtail token")
 @click.option("-lh", "--logtail_host", "logtail_host", help="Logtail host")
-@click.option("-legacy", "legacy", help="Run with legacy r1.0 hardware")
+@click.option("-legacy", "legacy", is_flag=True, help="Run with legacy r1.0 hardware")
 @logger.catch(level="CRITICAL", reraise=True)
 def _run(
     debug: bool,
@@ -74,7 +74,7 @@ def _run(
         logtail_token (str): token for logtail
         logtail_host (str): host for logtail
         path (str): path to the TAPPER configuration file
-        legacy (): run with legacy r1.0 hardware
+        legacy (bool): run with legacy r1.0 hardware
     """
     if path is not None:
         with open(path, "r") as file:
