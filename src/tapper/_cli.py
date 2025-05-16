@@ -4,7 +4,6 @@ This module provides a basic command-line tool for the TAPPER client.
 """
 
 import json
-import sys
 
 import board
 import click
@@ -57,9 +56,15 @@ def _version(debug: bool) -> None:
 @click.option("-h", "--mqtt", "mqtt_host", help="MQTT host")
 @click.option("-lt", "--logtail", "logtail_token", help="Logtail token")
 @click.option("-lh", "--logtail_host", "logtail_host", help="Logtail host")
+@click.option("-legacy", "legacy", help="Run with legacy r1.0 hardware")
 @logger.catch(level="CRITICAL", reraise=True)
 def _run(
-    debug: bool, mqtt_host: str, logtail_token: str, logtail_host: str, path: str
+    debug: bool,
+    mqtt_host: str,
+    logtail_token: str,
+    logtail_host: str,
+    path: str,
+    legacy: bool,
 ) -> None:
     """Run TAPPER.
 
@@ -69,6 +74,7 @@ def _run(
         logtail_token (str): token for logtail
         logtail_host (str): host for logtail
         path (str): path to the TAPPER configuration file
+        legacy (): run with legacy r1.0 hardware
     """
     if path is not None:
         with open(path, "r") as file:
@@ -92,8 +98,13 @@ def _run(
 
     logger.info(f"Running TAPPER version {tapper_version.__version__}")
 
-    buzzer_pin: int = 18
-    tamper_pin: int = 20
+    if legacy:
+        buzzer_pin: int = 18
+        tamper_pin: int = 20
+    else:
+        buzzer_pin: int = 21
+        tamper_pin: int = 6
+
     cs_pin: digitalio.DigitalInOut = digitalio.DigitalInOut(board.D8)
 
     if mqtt_host is None:
