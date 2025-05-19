@@ -45,7 +45,7 @@ def _version(debug: bool) -> None:
 
 
 @_cli.command(name="run", help="Run TAPPER.")
-@click.option("-c", "--config", "path", help="Path to theTAPPER configuration file")
+@click.option("-c", "--config", "path", help="Path to the TAPPER configuration file")
 @click.option(
     "-d",
     "--debug",
