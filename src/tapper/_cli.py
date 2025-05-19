@@ -56,7 +56,7 @@ def _version(debug: bool) -> None:
 @click.option("-h", "--mqtt", "mqtt_host", help="MQTT host")
 @click.option("-lt", "--logtail", "logtail_token", help="Logtail token")
 @click.option("-lh", "--logtail_host", "logtail_host", help="Logtail host")
-@click.option("-legacy", "legacy", is_flag=True, help="Run with legacy r1.0 hardware")
+@click.option("--legacy", "legacy", is_flag=True, help="Run with legacy r1.0 hardware")
 @logger.catch(level="CRITICAL", reraise=True)
 def _run(
     debug: bool,
