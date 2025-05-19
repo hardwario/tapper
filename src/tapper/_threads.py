@@ -23,6 +23,8 @@ def _tag_thread(tapper_instance: tapper.Tapper, stop_event: threading.Event) -> 
 
             main.process_tag(tapper_instance, uid)
 
+            stop_event.wait(timeout=2)
+
 
 @logger.catch()
 def _tamper_thread(tapper_instance: tapper.Tapper, stop_event: threading.Event) -> None:
@@ -127,6 +129,7 @@ def start_threads(tapper_instance: tapper.Tapper) -> None:
     def signal_handler(signum, frame):
         logger.info("Signal received, stopping threads...")
         stop_event.set()
+        logger.debug("Signal set")
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
@@ -139,6 +142,7 @@ def start_threads(tapper_instance: tapper.Tapper) -> None:
     stop_event.wait()
 
     for t in threads:
+        logger.debug(f"Stopping thread {t.name}")
         t.join()
 
     logger.info("All threads stopped.")
