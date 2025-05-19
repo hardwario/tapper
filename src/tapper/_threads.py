@@ -119,7 +119,9 @@ def start_threads(tapper_instance: tapper.Tapper) -> None:
             stop_event,
         ),
     )
-    mqtt_thread: threading.Thread = threading.Thread(target=tapper_instance.mqtt_run)
+    mqtt_thread: threading.Thread = threading.Thread(
+        target=tapper_instance.mqtt_run, args=(stop_event,)
+    )
 
     threads = [tag_thread, tamper_thread, heartbeat_thread, mqtt_thread]
 
