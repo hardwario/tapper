@@ -92,7 +92,7 @@ def _heartbeat_thread(
             ),
         )
 
-        time.sleep(60)
+        stop_event.wait(timeout=60)
 
 
 def start_threads(tapper_instance: tapper.Tapper) -> None:
