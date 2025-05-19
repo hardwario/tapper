@@ -104,10 +104,11 @@ def _run(
     else:
         buzzer_pin: int = 21
         tamper_pin: int = 6
+        led_pins: tuple[int, int, int] = (26, 13, 19)
 
     cs_pin: digitalio.DigitalInOut = digitalio.DigitalInOut(board.D8)
 
     if mqtt_host is None:
         raise click.UsageError("MQTT host not specified!")
 
-    tapper_main.main(mqtt_host, tamper_pin, buzzer_pin, cs_pin)
+    tapper_main.main(mqtt_host, tamper_pin, buzzer_pin, cs_pin, led_pins)
