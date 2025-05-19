@@ -1,13 +1,11 @@
 """Main logic for TAPPER."""
 
 import queue
-from queue import Queue
 from time import sleep
 
 import board
 import busio
 import digitalio
-import uvloop
 from loguru import logger
 
 import tapper

@@ -15,7 +15,6 @@ import uuid
 import busio
 import digitalio
 import gpiozero
-import uvloop
 from adafruit_pn532 import spi as pn532
 from loguru import logger
 from paho.mqtt import client as mqtt
@@ -89,12 +88,11 @@ class Tapper(pn532.PN532_SPI):
             time.sleep(2)  # Let logtail finish
             sys.exit(113)
 
-        uvloop.run(
-            self.mqtt_publish(
-                "event/boot",
-                {},
-            )
+        self.mqtt_publish(
+            "event/boot",
+            {},
         )
+
         logger.debug("MQTT connected")
 
     @logger.catch()
