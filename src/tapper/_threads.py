@@ -129,7 +129,7 @@ def start_threads(tapper_instance: tapper.Tapper) -> None:
     def signal_handler(signum, frame):
         logger.info("Signal received, stopping threads...")
         stop_event.set()
-        logger.debug("Signal set")
+        logger.debug("Stop event set")
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
