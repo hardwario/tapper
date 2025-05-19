@@ -134,4 +134,3 @@ def start_threads(tapper_instance: tapper.Tapper) -> None:
         if pending:
             logger.warning(f"Pending signals: {pending}")
             stop_event.set()
-        time.sleep(1)
