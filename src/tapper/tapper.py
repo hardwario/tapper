@@ -152,7 +152,7 @@ class Tapper(pn532.PN532_SPI):
         """Run the MQTT publisher."""
         while not stop_event.is_set():
             try:
-                topic, payload = self.mqtt_queue.get()
+                topic, payload = self.mqtt_queue.get(timeout=0.1)
                 self.mqtt_publish(topic, payload)
                 self.mqtt_queue.task_done()
             except queue.Empty:
