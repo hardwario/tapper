@@ -11,16 +11,22 @@ import uvloop
 from loguru import logger
 
 import tapper
-from tapper import _loops
+from tapper import _threads as tapper_threads
 
 
 @logger.catch()
-def main(mqtt_host: str, tamper_pin: int, buzzer: int, cs_pin: digitalio.DigitalInOut):
+def main(
+    mqtt_host: str,
+    tamper_pin: int,
+    buzzer: int,
+    cs_pin: digitalio.DigitalInOut,
+    led_pins: tuple[int, int, int],
+):
     """Main function for TAPPER."""
     spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
 
     tapper_instance: tapper.Tapper = tapper.Tapper(
-        spi, cs_pin, mqtt_host, tamper_pin, buzzer
+        spi, cs_pin, mqtt_host, tamper_pin, buzzer, led_pins
     )
 
     tapper_instance.mqtt_queue = queue.Queue()
@@ -34,7 +40,7 @@ def main(mqtt_host: str, tamper_pin: int, buzzer: int, cs_pin: digitalio.Digital
 
     logger.debug(f"Tamper switch initial state: {tapper_instance.get_tamper()}")
 
-    uvloop.run(tapper._loops.loops(tapper_instance))
+    tapper_threads.start_threads(tapper_instance)
 
 
 @logger.catch()

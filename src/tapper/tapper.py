@@ -35,7 +35,7 @@ class Tapper(pn532.PN532_SPI):
         mqtt_host: str,
         tamper_pin: int = 20,
         buzzer_pin: int = 18,
-        led_pins: tuple = (26, 13, 19),
+        led_pins: tuple[int, int, int] = (26, 13, 19),
     ) -> None:
         """Initialize TAPPER.
 
