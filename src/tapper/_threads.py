@@ -129,8 +129,6 @@ def start_threads(tapper_instance: tapper.Tapper) -> None:
     for t in threads:
         t.start()
 
-    while not stop_event.is_set():
-        pending = signal.sigpending()
-        if pending:
-            logger.warning(f"Pending signals: {pending}")
-            stop_event.set()
+    signal.sigwait([signal.SIGINT, signal.SIGTERM])
+    logger.info("Stopping threads...")
+    stop_event.set()
