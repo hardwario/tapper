@@ -5,9 +5,10 @@ It extends the Adafruit PN532 circuit python implementation by Tamper switch, UI
 and an internal mqtt client implementation.
 """
 
-import asyncio
 import json
+import queue
 import sys
+import threading
 import time
 import uuid
 
@@ -34,6 +35,7 @@ class Tapper(pn532.PN532_SPI):
         mqtt_host: str,
         tamper_pin: int = 20,
         buzzer_pin: int = 18,
+        led_pins: tuple = (26, 13, 19),
     ) -> None:
         """Initialize TAPPER.
 
@@ -43,15 +45,31 @@ class Tapper(pn532.PN532_SPI):
             mqtt_host (): address of the MQTT broker
             tamper_pin (): pin of the tamper switch
             buzzer_pin (): pin of the buzzer
+            led_pins (): pins for the RGB LED
         """
         super().__init__(spi, cs_pin)
 
-        self.lock_buzzer = asyncio.Lock()
-        self.lock_mqtt = asyncio.Lock()
-        self.lock_nfc = asyncio.Lock()
+        self.lock_buzzer = threading.Lock()
+        self.lock_mqtt = threading.Lock()
+        self.lock_nfc = threading.Lock()
+        self.lock_led = threading.Lock()
 
         self.buzzer: gpiozero.Buzzer = gpiozero.Buzzer(buzzer_pin)
         self.buzzer.off()
+
+        self._tamper_switch: gpiozero.Button = gpiozero.Button(
+            tamper_pin, pull_up=False
+        )
+        if self._tamper_switch is None:
+            logger.warning(
+                """Tamper switch not initialized. Tamper will always return True."""
+            )
+
+        self.led = gpiozero.RGBLED(led_pins[0], led_pins[1], led_pins[2])
+
+        logger.info(f"TAPPER {self.get_id()} initialized.")
+
+        self.mqtt_queue: queue.Queue = queue.Queue()
 
         try:
             self.mqtt_client = mqtt.Client(client_id="TAPPER " + self.get_id())
@@ -79,16 +97,6 @@ class Tapper(pn532.PN532_SPI):
         )
         logger.debug("MQTT connected")
 
-        self._tamper_switch: gpiozero.Button = gpiozero.Button(
-            tamper_pin, pull_up=False
-        )
-        if self._tamper_switch is None:
-            logger.warning(
-                """Tamper switch not initialized. Tamper will always return True."""
-            )
-
-        logger.info(f"TAPPER {self.get_id()} initialized.")
-
     @logger.catch()
     def get_id(self) -> str:
         """Return MAC address.
@@ -105,7 +113,7 @@ class Tapper(pn532.PN532_SPI):
         return tapper_id
 
     @logger.catch()
-    async def mqtt_publish(self, topic: str, payload: dict) -> None:
+    def mqtt_publish(self, topic: str, payload: dict) -> None:
         """Publish a message to TAPPER's MQTT broker.
 
         Args:
@@ -117,7 +125,7 @@ class Tapper(pn532.PN532_SPI):
 
         message: str = json.dumps({"timestamp": time.time(), **payload})
 
-        await self.lock_mqtt.acquire()
+        self.lock_mqtt.acquire()
         try:
             self.mqtt_client.publish(topic, message)
         finally:
@@ -135,3 +143,19 @@ class Tapper(pn532.PN532_SPI):
             return self._tamper_switch.is_active
         else:
             return True
+
+    @logger.catch()
+    def mqtt_schedule(self, topic: str, payload: dict) -> None:
+        """Schedule a message to be published via TAPPER's MQTT client."""
+        self.mqtt_queue.put((topic, payload))
+
+    @logger.catch()
+    def mqtt_run(self, stop_event: threading.Event) -> None:
+        """Run the MQTT publisher."""
+        while not stop_event.is_set():
+            try:
+                topic, payload = self.mqtt_queue.get()
+                self.mqtt_publish(topic, payload)
+                self.mqtt_queue.task_done()
+            except queue.Empty:
+                pass

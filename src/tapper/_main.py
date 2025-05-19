@@ -1,5 +1,7 @@
 """Main logic for TAPPER."""
 
+import queue
+from queue import Queue
 from time import sleep
 
 import board
@@ -21,6 +23,8 @@ def main(mqtt_host: str, tamper_pin: int, buzzer: int, cs_pin: digitalio.Digital
         spi, cs_pin, mqtt_host, tamper_pin, buzzer
     )
 
+    tapper_instance.mqtt_queue = queue.Queue()
+
     ic: int
     ver: int
     rev: int
@@ -34,15 +38,14 @@ def main(mqtt_host: str, tamper_pin: int, buzzer: int, cs_pin: digitalio.Digital
 
 
 @logger.catch()
-async def process_tag(tapper_instance: tapper.Tapper, uid: bytearray) -> None:
+def process_tag(tapper_instance: tapper.Tapper, uid: bytearray) -> None:
     """Process UID of a detected NFC tag.
 
     Log tag UID, activate the buzzer, and send MQTT message.
     """
-    str_uid = "".join([format(i, "02x").lower() for i in uid])
     logger.debug(f"Processing tag: {''.join([format(i, '02x').lower() for i in uid])}")
 
-    await tapper_instance.lock_buzzer.acquire()
+    tapper_instance.lock_buzzer.acquire()
     try:
         tapper_instance.buzzer.on()
         sleep(0.125)
@@ -50,6 +53,6 @@ async def process_tag(tapper_instance: tapper.Tapper, uid: bytearray) -> None:
     finally:
         tapper_instance.lock_buzzer.release()
 
-    await tapper_instance.mqtt_publish(
+    tapper_instance.mqtt_schedule(
         "event/tag", {"id": "".join([format(i, "02x").lower() for i in uid])}
     )
