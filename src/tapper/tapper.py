@@ -119,7 +119,7 @@ class Tapper(pn532.PN532_SPI):
             payload (): the payload of the MQTT message
         """
         topic = f"tapper/{self.get_id()}/{topic}"
-        logger.debug(f"Publishing MQTT message {topic} {payload}")
+        logger.trace(f"Publishing MQTT message {topic} {payload}")
 
         message: str = json.dumps({"timestamp": time.time(), **payload})
 
