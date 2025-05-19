@@ -124,11 +124,21 @@ def start_threads(tapper_instance: tapper.Tapper) -> None:
         target=tapper_instance.mqtt_run, args=(stop_event,)
     )
 
+    def signal_handler(signum, frame):
+        logger.info("Signal received, stopping threads...")
+        stop_event.set()
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
     threads = [tag_thread, tamper_thread, heartbeat_thread, mqtt_thread]
 
     for t in threads:
         t.start()
 
-    signal.sigwait([signal.SIGINT, signal.SIGTERM])
-    logger.info("Stopping threads...")
-    stop_event.set()
+    stop_event.wait()
+
+    for t in threads:
+        t.join()
+
+    logger.info("All threads stopped.")
