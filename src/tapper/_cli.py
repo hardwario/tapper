@@ -101,6 +101,7 @@ def _run(
     if legacy:
         buzzer_pin: int = 18
         tamper_pin: int = 20
+        led_pins: tuple[int, int, int] = (17, 16, 15)
     else:
         buzzer_pin: int = 21
         tamper_pin: int = 6
