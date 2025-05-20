@@ -30,7 +30,7 @@ logger.remove()
 logger.add(
     os.path.join(homedir, ".tapper/logs/tapper_{time}.log"),
     rotation="1 day",
-    retention="3 days",
+    retention=3,
     level="TRACE",
     enqueue=True,
     serialize=True,
