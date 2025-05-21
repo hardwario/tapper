@@ -143,8 +143,11 @@ def start_threads(tapper_instance: tapper.Tapper) -> None:
     outputs_thread: threading.Thread = threading.Thread(
         target=_outputs_thread, args=(tapper_instance, stop_event)
     )
+    mqtt_publisher_thread: threading.Thread = threading.Thread(
+        target=tapper_instance.mqtt_publisher_run, args=(stop_event,)
+    )
     mqtt_thread: threading.Thread = threading.Thread(
-        target=tapper_instance.mqtt_run, args=(stop_event,)
+        target=tapper_instance.mqtt_client.loop_forever
     )
 
     def signal_handler(signum, frame):
@@ -155,7 +158,14 @@ def start_threads(tapper_instance: tapper.Tapper) -> None:
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    threads = [tag_thread, tamper_thread, heartbeat_thread, outputs_thread, mqtt_thread]
+    threads = [
+        tag_thread,
+        tamper_thread,
+        heartbeat_thread,
+        outputs_thread,
+        mqtt_publisher_thread,
+        mqtt_thread,
+    ]
 
     for t in threads:
         logger.debug(f"Starting thread {t.name}")

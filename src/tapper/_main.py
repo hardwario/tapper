@@ -28,8 +28,6 @@ def main(
         spi, cs_pin, mqtt_host, tamper_pin, buzzer_pin, led_pins
     )
 
-    tapper_instance.mqtt_queue = queue.Queue()
-
     ic: int
     ver: int
     rev: int

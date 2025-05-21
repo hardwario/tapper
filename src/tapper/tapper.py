@@ -155,7 +155,7 @@ class Tapper(pn532.PN532_SPI):
         self.mqtt_queue.put((topic, payload))
 
     @logger.catch()
-    def mqtt_run(self, stop_event: threading.Event) -> None:
+    def mqtt_publisher_run(self, stop_event: threading.Event) -> None:
         """Run the MQTT publisher."""
         while not stop_event.is_set():
             try:
