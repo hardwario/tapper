@@ -33,6 +33,7 @@ def _tamper_thread(tapper_instance: tapper.Tapper, stop_event: threading.Event) 
     """Thread for checking the tamper switch."""
     while not stop_event.is_set():
         tapper_instance.lock_buzzer.acquire()
+        tapper_instance.lock_led.acquire()
 
         try:
             if not tapper_instance.get_tamper():
@@ -43,11 +44,14 @@ def _tamper_thread(tapper_instance: tapper.Tapper, stop_event: threading.Event) 
                 logger.warning(f"Tamper detected: {time.time()}")
 
                 tapper_instance.buzzer.on()
+                tapper_instance.led.color = (1, 0, 0)
 
             else:
                 tapper_instance.buzzer.off()
+                tapper_instance.led.off()
         finally:
             tapper_instance.lock_buzzer.release()
+            tapper_instance.lock_led.release()
             time.sleep(0.5)
 
 
