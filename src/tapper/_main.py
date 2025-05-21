@@ -51,10 +51,7 @@ def main(
         {"tapper": tapper_instance, "requests": tapper_instance.request_queue}
     )
 
-    tapper_instance.mqtt_client.message_callback_add(
-        f"tapper/{tapper_instance.get_id()}/control/request",
-        tapper_outputs.add_to_request_queue,
-    )
+    tapper_instance.mqtt_client.on_message = tapper_outputs.add_to_request_queue
 
     tapper_threads.start_threads(tapper_instance)
 
