@@ -27,7 +27,7 @@ class Tapper(pn532.PN532_SPI):
     """
 
     @logger.catch(reraise=True)
-    def __init__(
+    def __init__(  # noqa: D417
         self,
         spi: busio.SPI,
         cs_pin: digitalio.DigitalInOut,
@@ -35,6 +35,7 @@ class Tapper(pn532.PN532_SPI):
         tamper_pin: int = 20,
         buzzer_pin: int = 18,
         led_pins: tuple[int, int, int] = (26, 13, 19),
+        relay_pin: int = None,  # TODO add default for hardware R2.0
     ) -> None:
         """Initialize TAPPER.
 
@@ -44,7 +45,8 @@ class Tapper(pn532.PN532_SPI):
             mqtt_host (): address of the MQTT broker
             tamper_pin (): pin of the tamper switch
             buzzer_pin (): pin of the buzzer
-            led_pins (): pins for the RGB LED
+            led_pins (): pins of the RGB LED
+            relay_pin (): pin of the relay
         """
         super().__init__(spi, cs_pin)
 
@@ -52,6 +54,7 @@ class Tapper(pn532.PN532_SPI):
         self.lock_mqtt = threading.Lock()
         self.lock_nfc = threading.Lock()
         self.lock_led = threading.Lock()
+        self.lock_relay = threading.Lock()
 
         self.buzzer: gpiozero.Buzzer = gpiozero.Buzzer(buzzer_pin)
         self.buzzer.off()
@@ -65,6 +68,10 @@ class Tapper(pn532.PN532_SPI):
             )
 
         self.led = gpiozero.RGBLED(led_pins[0], led_pins[1], led_pins[2])
+
+        self.relay = gpiozero.OutputDevice(
+            relay_pin, active_high=True, initial_value=False
+        )
 
         logger.info(f"TAPPER {self.get_id()} initialized.")
 

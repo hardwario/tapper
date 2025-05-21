@@ -9,6 +9,7 @@ import digitalio
 from loguru import logger
 
 import tapper
+from tapper import _outputs as tapper_outputs
 from tapper import _threads as tapper_threads
 
 
@@ -16,7 +17,7 @@ from tapper import _threads as tapper_threads
 def main(
     mqtt_host: str,
     tamper_pin: int,
-    buzzer: int,
+    buzzer_pin: int,
     cs_pin: digitalio.DigitalInOut,
     led_pins: tuple[int, int, int],
 ):
@@ -24,7 +25,7 @@ def main(
     spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
 
     tapper_instance: tapper.Tapper = tapper.Tapper(
-        spi, cs_pin, mqtt_host, tamper_pin, buzzer, led_pins
+        spi, cs_pin, mqtt_host, tamper_pin, buzzer_pin, led_pins
     )
 
     tapper_instance.mqtt_queue = queue.Queue()
@@ -38,6 +39,17 @@ def main(
 
     logger.debug(f"Tamper switch initial state: {tapper_instance.get_tamper()}")
 
+    tapper_instance.request_queue = queue.Queue()
+
+    tapper_instance.mqtt_client.user_data_set(
+        {"tapper": tapper_instance, "requests": tapper_instance.request_queue}
+    )
+
+    tapper_instance.mqtt_client.message_callback_add(
+        f"tapper/{tapper_instance.get_id()}/control/request",
+        tapper_outputs.add_to_request_queue,
+    )
+
     tapper_threads.start_threads(tapper_instance)
 
 
@@ -50,9 +62,13 @@ def process_tag(tapper_instance: tapper.Tapper, uid: bytearray) -> None:
     logger.debug(f"Processing tag: {''.join([format(i, '02x').lower() for i in uid])}")
 
     tapper_instance.lock_buzzer.acquire()
+    tapper_instance.lock_nfc.acquire()
+
     try:
+        tapper_instance.led.color = (0, 1, 1)
         tapper_instance.buzzer.on()
         sleep(0.125)
+        tapper_instance.led.off()
         tapper_instance.buzzer.off()
     finally:
         tapper_instance.lock_buzzer.release()

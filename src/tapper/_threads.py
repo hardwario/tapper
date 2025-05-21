@@ -1,4 +1,5 @@
 import json
+import queue
 import signal
 import threading
 import time
@@ -8,6 +9,7 @@ from loguru import logger
 
 import tapper
 from tapper import _main as main
+from tapper import _outputs as tapper_outputs
 
 
 @logger.catch()
@@ -97,6 +99,17 @@ def _heartbeat_thread(
         stop_event.wait(timeout=60)
 
 
+@logger.catch()
+def _outputs_thread(tapper_instance: tapper.Tapper, stop_event: threading.Event):
+    """Loops processing output requests."""
+    while not stop_event.is_set():
+        requests: queue.Queue = tapper_instance.request_queue.get(timeout=0.1)
+
+        payload: dict = tapper_outputs.process_request(tapper_instance, requests)
+
+        tapper_instance.mqtt_schedule("control/response", payload)
+
+
 def start_threads(tapper_instance: tapper.Tapper) -> None:
     """Start TAPPER threads."""
     stop_event: threading.Event = threading.Event()
@@ -122,6 +135,9 @@ def start_threads(tapper_instance: tapper.Tapper) -> None:
             stop_event,
         ),
     )
+    outputs_thread: threading.Thread = threading.Thread(
+        target=_outputs_thread, args=(tapper_instance, stop_event)
+    )
     mqtt_thread: threading.Thread = threading.Thread(
         target=tapper_instance.mqtt_run, args=(stop_event,)
     )
@@ -134,7 +150,7 @@ def start_threads(tapper_instance: tapper.Tapper) -> None:
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    threads = [tag_thread, tamper_thread, heartbeat_thread, mqtt_thread]
+    threads = [tag_thread, tamper_thread, heartbeat_thread, outputs_thread, mqtt_thread]
 
     for t in threads:
         t.start()
