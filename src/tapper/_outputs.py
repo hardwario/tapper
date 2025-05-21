@@ -213,7 +213,7 @@ def _do_pattern(
 
 
 @logger.catch()
-def add_to_request_queue(mqtt_client, userdata, message):
+def add_to_request_queue(client, userdata, message):
     """Add a request to the request queue."""
     logger.debug(f"Received request: {message.payload.decode('utf-8')}")
     logger.debug(f"Request queue: {userdata.get('requests')}")
