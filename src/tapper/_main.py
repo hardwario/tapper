@@ -65,7 +65,7 @@ def process_tag(tapper_instance: tapper.Tapper, uid: bytearray) -> None:
     tapper_instance.lock_led.acquire()
 
     try:
-        tapper_instance.led.color = (0, 1, 1)
+        tapper_instance.led.color = (1, 1, 0)
         tapper_instance.buzzer.on()
         sleep(0.125)
         tapper_instance.led.off()
