@@ -35,7 +35,7 @@ def _tamper_thread(tapper_instance: tapper.Tapper, stop_event: threading.Event) 
         tapper_instance.lock_buzzer.acquire()
 
         try:
-            if tapper_instance.get_tamper():  # TODO: negate for production
+            if not tapper_instance.get_tamper():
                 tapper_instance.mqtt_schedule(
                     "event/tamper",
                     {"state": "active" if tapper_instance.get_tamper() else "inactive"},
