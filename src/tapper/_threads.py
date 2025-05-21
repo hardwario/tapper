@@ -154,6 +154,7 @@ def start_threads(tapper_instance: tapper.Tapper) -> None:
         logger.info("Signal received, stopping threads...")
         stop_event.set()
         logger.debug("Stop event set")
+        tapper_instance.mqtt_client.disconnect()
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
