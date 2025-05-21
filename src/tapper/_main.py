@@ -72,6 +72,7 @@ def process_tag(tapper_instance: tapper.Tapper, uid: bytearray) -> None:
         tapper_instance.buzzer.off()
     finally:
         tapper_instance.lock_buzzer.release()
+        tapper_instance.lock_led.release()
 
     tapper_instance.mqtt_schedule(
         "event/tag", {"id": "".join([format(i, "02x").lower() for i in uid])}
