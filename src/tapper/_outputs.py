@@ -80,7 +80,7 @@ def process_request(tapper_instance: tapper.Tapper, request_message: str) -> dic
                             tapper_instance.lock_led.release()
 
             elif "pattern" in request["visual"]:
-                pattern, color = request["visual"].split("/", 1)
+                pattern, color = request["visual"]["pattern"].split("/", 1)
 
                 match color:
                     case "red":
@@ -135,6 +135,7 @@ def process_request(tapper_instance: tapper.Tapper, request_message: str) -> dic
                 (),
             )
     except Exception as e:
+        logger.error(f"Error processing request: {e}")
         return {"id": request_id, "result": "error", "error": str(e)}
 
     return {
@@ -216,7 +217,6 @@ def _do_pattern(
 def add_to_request_queue(client, userdata, message):
     """Add a request to the request queue."""
     logger.debug(f"Received request: {message.payload.decode('utf-8')}")
-    logger.debug(f"Request queue: {userdata.get('requests')}")
     request_message: str = message.payload.decode("utf-8")
 
     userdata.get("tapper").request_queue.put(request_message)
