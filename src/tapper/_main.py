@@ -62,7 +62,7 @@ def process_tag(tapper_instance: tapper.Tapper, uid: bytearray) -> None:
     logger.debug(f"Processing tag: {''.join([format(i, '02x').lower() for i in uid])}")
 
     tapper_instance.lock_buzzer.acquire()
-    tapper_instance.lock_nfc.acquire()
+    tapper_instance.lock_led.acquire()
 
     try:
         tapper_instance.led.color = (0, 1, 1)
