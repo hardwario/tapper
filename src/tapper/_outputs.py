@@ -21,6 +21,8 @@ def process_request(tapper_instance: tapper.Tapper, request_message: str) -> dic
 
     request_id: int = request["id"]
 
+    logger.debug(f"Processing request: {request}")
+
     try:
         if "output" in request.keys():
             match request["output"]["command"]:
@@ -159,6 +161,8 @@ def _do_pattern(
         off (): function to call when switching on the output, for example: tapper_instance.buzzer_pin.off
         off_args (): positional arguments to pass to the off callable
     """
+    logger.debug(f"Executing pattern: {pattern}")
+
     match pattern:
         case "p1":
             lock.acquire()
@@ -211,5 +215,7 @@ def _do_pattern(
 @logger.catch()
 def add_to_request_queue(mqtt_client, userdata, message):
     """Add a request to the request queue."""
+    logger.debug(f"Received request: {message.payload.decode('utf-8')}")
+    logger.debug(f"Request queue: {userdata.get('requests')}")
     request_message: str = message.payload.decode("utf-8")
     userdata.get("requests").put(request_message)
