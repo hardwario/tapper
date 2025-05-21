@@ -76,3 +76,5 @@ def process_tag(tapper_instance: tapper.Tapper, uid: bytearray) -> None:
     tapper_instance.mqtt_schedule(
         "event/tag", {"id": "".join([format(i, "02x").lower() for i in uid])}
     )
+
+    logger.debug("Tag processing finished")

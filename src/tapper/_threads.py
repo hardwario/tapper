@@ -25,7 +25,7 @@ def _tag_thread(tapper_instance: tapper.Tapper, stop_event: threading.Event) -> 
 
             main.process_tag(tapper_instance, uid)
 
-            stop_event.wait(timeout=2)
+        stop_event.wait(timeout=2)
 
 
 @logger.catch()
