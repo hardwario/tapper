@@ -103,11 +103,14 @@ def _heartbeat_thread(
 def _outputs_thread(tapper_instance: tapper.Tapper, stop_event: threading.Event):
     """Loops processing output requests."""
     while not stop_event.is_set():
-        requests: queue.Queue = tapper_instance.request_queue.get(timeout=0.1)
+        try:
+            requests: queue.Queue = tapper_instance.request_queue.get(timeout=0.1)
 
-        payload: dict = tapper_outputs.process_request(tapper_instance, requests)
+            payload: dict = tapper_outputs.process_request(tapper_instance, requests)
 
-        tapper_instance.mqtt_schedule("control/response", payload)
+            tapper_instance.mqtt_schedule("control/response", payload)
+        except queue.Empty:
+            pass
 
 
 def start_threads(tapper_instance: tapper.Tapper) -> None:
