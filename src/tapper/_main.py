@@ -41,6 +41,12 @@ def main(
 
     tapper_instance.request_queue = queue.Queue()
 
+    tapper_instance.mqtt_client.subscribe(
+        f"tapper/{tapper_instance.get_id()}/control/request"
+    )
+
+    logger.debug(f"Subscribed to: tapper/{tapper_instance.get_id()}/control/request")
+
     tapper_instance.mqtt_client.user_data_set(
         {"tapper": tapper_instance, "requests": tapper_instance.request_queue}
     )
