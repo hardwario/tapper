@@ -42,7 +42,7 @@ def main(
     tapper_instance.request_queue = queue.Queue()
 
     tapper_instance.mqtt_client.subscribe(
-        f"tapper/{tapper_instance.get_id()}/control/request"
+        f"tapper/{tapper_instance.get_id()}/control/request", 0
     )
 
     logger.debug(f"Subscribed to: tapper/{tapper_instance.get_id()}/control/request")

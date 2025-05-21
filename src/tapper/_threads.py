@@ -117,6 +117,8 @@ def start_threads(tapper_instance: tapper.Tapper) -> None:
     """Start TAPPER threads."""
     stop_event: threading.Event = threading.Event()
 
+    logger.info("Starting threads...")
+
     tag_thread: threading.Thread = threading.Thread(
         target=_tag_thread,
         args=(
@@ -156,6 +158,7 @@ def start_threads(tapper_instance: tapper.Tapper) -> None:
     threads = [tag_thread, tamper_thread, heartbeat_thread, outputs_thread, mqtt_thread]
 
     for t in threads:
+        logger.debug(f"Starting thread {t.name}")
         t.start()
 
     stop_event.wait()
