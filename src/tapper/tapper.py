@@ -35,7 +35,7 @@ class Tapper(pn532.PN532_SPI):
         tamper_pin: int = 20,
         buzzer_pin: int = 18,
         led_pins: tuple[int, int, int] = (26, 13, 19),
-        relay_pin: int = None,  # TODO add default for hardware R2.0
+        relay_pin: int = 14,  # TODO add default for hardware R2.0
     ) -> None:
         """Initialize TAPPER.
 
