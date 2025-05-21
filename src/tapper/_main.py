@@ -51,6 +51,10 @@ def main(
         {"tapper": tapper_instance, "requests": tapper_instance.request_queue}
     )
 
+    logger.debug(
+        f"MQTT client user data set: {tapper_instance.mqtt_client.user_data_get()}"
+    )
+
     tapper_instance.mqtt_client.on_message = tapper_outputs.add_to_request_queue
 
     tapper_threads.start_threads(tapper_instance)

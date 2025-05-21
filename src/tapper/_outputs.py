@@ -218,4 +218,4 @@ def add_to_request_queue(client, userdata, message):
     logger.debug(f"Received request: {message.payload.decode('utf-8')}")
     logger.debug(f"Request queue: {userdata.get('requests')}")
     request_message: str = message.payload.decode("utf-8")
-    userdata.get("requests").put(request_message)
+    userdata.get("tapper").request_queue.put(request_message)
