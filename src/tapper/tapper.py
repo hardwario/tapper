@@ -78,7 +78,8 @@ class Tapper(pn532.PN532_SPI):
         self.mqtt_queue: queue.Queue = queue.Queue()
 
         try:
-            self.mqtt_client = mqtt.Client(client_id="TAPPER " + self.get_id())
+            self.mqtt_client = mqtt.Client(client_id=self.get_id())
+            self.mqtt_client.username = "TAPPER " + self.get_id()
             self.mqtt_client.connect(mqtt_host, 1883, 60)
         except TimeoutError:
             logger.exception(
