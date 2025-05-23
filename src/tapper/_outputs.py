@@ -54,7 +54,7 @@ def process_request(tapper_instance: tapper.Tapper, request_message: str) -> dic
 
         if "visual" in request:
             if "state" in request["visual"]:
-                state, color = request["visual"]["pattern"].split("/", 1)
+                state, color = request["visual"]["state"].split("/", 1)
 
                 logger.debug(f"Processing visual state: {state}, {color}")
 
