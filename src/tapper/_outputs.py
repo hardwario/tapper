@@ -54,6 +54,9 @@ def process_request(tapper_instance: tapper.Tapper, request_message: str) -> dic
 
         if "visual" in request:
             if "state" in request["visual"]:
+                logger.debug(
+                    f"Processing visual state: {request['visual']['state'][:2]}, {request['visual']['state'][3:]}"
+                )
                 match request["visual"]["state"][:2]:
                     case "off":
                         tapper_instance.lock_led.acquire()
