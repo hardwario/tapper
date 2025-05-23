@@ -33,7 +33,9 @@ This repository provides a python module with the Tapper class and a simple thre
    - `git`
    - `python3-dev`
 4. Enable serial port and SPI in `sudo raspi-config`
-5. Install TAPPER: `pipx install 'git+ssh://git@github.com/hardwario/tapper.git/#egg=tapper'`
+5. Install TAPPER: `pipx install 'git+ssh://git@github.com/hardwario/tapper.git@main#egg=tapper'`
+   - To install the bleeding-edge version, use
+     `pipx install 'git+ssh://git@github.com/hardwario/tapper.git@dev#egg=tapper`
 6. Test TAPPER
    - Run Mosquitto on another machine
    - Run TAPPER:
@@ -48,6 +50,6 @@ sudo apt update && sudo apt upgrade
 sudo apt install git pipx python3-dev
 pipx ensurepath
 sudo raspi-config
-pipx install 'git+ssh://git@github.com/hardwario/tapper.git/#egg=tapper'
+pipx install 'git+ssh://git@github.com/hardwario/tapper.git@main#egg=tapper'
 tapper run -h <your_mqtt_host>
 ```
