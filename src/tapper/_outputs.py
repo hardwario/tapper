@@ -141,7 +141,7 @@ def process_request(tapper_instance: tapper.Tapper, request_message: str) -> dic
                 (),
             )
     except Exception as e:
-        logger.error(f"Error processing request: {e}")
+        logger.exception(f"Error processing request: {e}")
         return {"id": request_id, "result": "error", "error": str(e)}
 
     return {
