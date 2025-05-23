@@ -86,7 +86,7 @@ def process_request(tapper_instance: tapper.Tapper, request_message: str) -> dic
             elif "pattern" in request["visual"]:
                 pattern, color = request["visual"]["pattern"].split("/", 1)
 
-                logger.debug(f"Processing visual pattern: {patterm}, {color}")
+                logger.debug(f"Processing visual pattern: {pattern}, {color}")
 
                 match color:
                     case "red":
