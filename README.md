@@ -52,4 +52,4 @@ tapper run -h <your_mqtt_host>
 ## Contributing
 
 For new features, create a branch starting with `feat/` and then rebase your changes into `dev`.
-From `dev` changes are be merged into `main`.
+From `dev` changes are merged into `main`.
