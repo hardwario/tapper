@@ -1,11 +1,7 @@
 # TAPPER
 
----
-
 A simple NFC reader built with the RPi Zero 2 W and the Adafruit PN532.
 This repository provides a python module with the Tapper class and a simple threaded implementation.
-
----
 
 ## Features
 
@@ -20,8 +16,6 @@ This repository provides a python module with the Tapper class and a simple thre
 
 - Threaded
 - TAMPER Detection
-
----
 
 ## Installation
 
@@ -58,4 +52,4 @@ tapper run -h <your_mqtt_host>
 ## Contributing
 
 For new features, create a branch starting with `feat/` and then rebase your changes into `dev`.
-From `dev` changes are be merged into `main`.
+From `dev` changes are merged into `main`.
