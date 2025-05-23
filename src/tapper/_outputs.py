@@ -54,7 +54,11 @@ def process_request(tapper_instance: tapper.Tapper, request_message: str) -> dic
 
         if "visual" in request:
             if "state" in request["visual"]:
-                match request["visual"]["state"][:2]:
+                state, color = request["visual"]["state"].split("/", 1)
+
+                logger.debug(f"Processing visual state: {state}, {color}")
+
+                match state:
                     case "off":
                         tapper_instance.lock_led.acquire()
 
@@ -63,11 +67,11 @@ def process_request(tapper_instance: tapper.Tapper, request_message: str) -> dic
                         finally:
                             tapper_instance.lock_led.release()
 
-                    case "on/":
+                    case "on":
                         tapper_instance.lock_led.acquire()
 
                         try:
-                            match request["visual"]["state"][3:]:
+                            match color:
                                 case "red":
                                     tapper_instance.led.color = (1, 0, 0)
                                 case "green":
@@ -81,6 +85,8 @@ def process_request(tapper_instance: tapper.Tapper, request_message: str) -> dic
 
             elif "pattern" in request["visual"]:
                 pattern, color = request["visual"]["pattern"].split("/", 1)
+
+                logger.debug(f"Processing visual pattern: {pattern}, {color}")
 
                 match color:
                     case "red":
@@ -135,7 +141,7 @@ def process_request(tapper_instance: tapper.Tapper, request_message: str) -> dic
                 (),
             )
     except Exception as e:
-        logger.error(f"Error processing request: {e}")
+        logger.exception(f"Error processing request: {e}")
         return {"id": request_id, "result": "error", "error": str(e)}
 
     return {

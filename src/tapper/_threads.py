@@ -35,8 +35,10 @@ def _tamper_thread(tapper_instance: tapper.Tapper, stop_event: threading.Event) 
         tapper_instance.lock_buzzer.acquire()
         tapper_instance.lock_led.acquire()
 
+        led_state: tuple[int, int, int] = tapper_instance.led.value
+
         try:
-            if not tapper_instance.get_tamper():
+            while not tapper_instance.get_tamper():
                 tapper_instance.mqtt_schedule(
                     "event/tamper",
                     {"state": "active" if tapper_instance.get_tamper() else "inactive"},
@@ -46,9 +48,11 @@ def _tamper_thread(tapper_instance: tapper.Tapper, stop_event: threading.Event) 
                 tapper_instance.buzzer.on()
                 tapper_instance.led.color = (1, 0, 0)
 
+                time.sleep(0.5)
+
             else:
                 tapper_instance.buzzer.off()
-                tapper_instance.led.off()
+                tapper_instance.led.color = led_state
         finally:
             tapper_instance.lock_buzzer.release()
             tapper_instance.lock_led.release()
