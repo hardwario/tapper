@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 [project.scripts]
-tapper = "tapper:_cli._cli"
+tapper = "tapper:_cli.cli"
 
 [project.optional-dependencies]
 logtail = [

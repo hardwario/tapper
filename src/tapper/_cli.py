@@ -17,12 +17,12 @@ from tapper import _version as tapper_version
 
 
 @click.group(help="The TAPPER Client CLI")
-def _cli() -> None:
+def cli() -> None:
     """Define a click group."""
     pass
 
 
-@_cli.command(name="version", help="Display version of TAPPER package.")
+@cli.command(name="version", help="Display version of TAPPER package.")
 @click.option(
     "-d",
     "--debug",
@@ -44,7 +44,7 @@ def _version(debug: bool) -> None:
     )
 
 
-@_cli.command(name="run", help="Run TAPPER.")
+@cli.command(name="run", help="Run TAPPER.")
 @click.option("-c", "--config", "path", help="Path to the TAPPER configuration file")
 @click.option(
     "-d",
