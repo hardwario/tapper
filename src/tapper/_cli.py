@@ -16,7 +16,7 @@ from tapper import _main as tapper_main
 from tapper import _version as tapper_version
 
 
-@click.group()
+@click.group(help="The TAPPER Client CLI")
 def _cli() -> None:
     """Define a click group."""
     pass
