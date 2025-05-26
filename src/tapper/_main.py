@@ -16,6 +16,7 @@ from tapper import _threads as tapper_threads
 @logger.catch()
 def main(
     mqtt_host: str,
+    mqtt_port: int,
     tamper_pin: int,
     buzzer_pin: int,
     cs_pin: digitalio.DigitalInOut,
@@ -25,7 +26,7 @@ def main(
     spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
 
     tapper_instance: tapper.Tapper = tapper.Tapper(
-        spi, cs_pin, mqtt_host, tamper_pin, buzzer_pin, led_pins
+        spi, cs_pin, mqtt_host, mqtt_port, tamper_pin, buzzer_pin, led_pins
     )
 
     ic: int

@@ -23,11 +23,6 @@ dependencies = [
 [project.scripts]
 tapper = "tapper:_cli.cli"
 
-[project.optional-dependencies]
-logtail = [
-    "logtail-python>=0.3.3",
-]
-
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
