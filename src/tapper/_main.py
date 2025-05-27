@@ -1,7 +1,7 @@
 """Main logic for TAPPER."""
 
 import queue
-from time import sleep
+import time
 
 import board
 import busio
@@ -73,9 +73,11 @@ def process_tag(tapper_instance: tapper.Tapper, uid: bytearray) -> None:
     led_state = tapper_instance.led.value
 
     try:
+        tapper_instance.led.off()
+        time.sleep(0.125)
         tapper_instance.led.color = (1, 1, 0)
         tapper_instance.buzzer.on()
-        sleep(0.125)
+        time.sleep(0.125)
         tapper_instance.led.color = led_state
         tapper_instance.buzzer.off()
     finally:
