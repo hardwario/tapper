@@ -40,7 +40,8 @@ dev = [
 path = "src/tapper/_version.py"
 
 [tool.ruff.lint]
-select = ["D",
+select = [
+    "D",
     "D204",
     "I",
 ]

@@ -31,6 +31,7 @@ class Tapper(pn532.PN532_SPI):
         self,
         spi: busio.SPI,
         cs_pin: digitalio.DigitalInOut,
+        tls_options: tuple[str, str, str],
         mqtt_host: str,
         mqtt_port: int = 1883,
         tamper_pin: int = 20,
@@ -43,6 +44,7 @@ class Tapper(pn532.PN532_SPI):
         Args:
             spi (): pin for an SPI device
             cs_pin (): pin for chip select
+            tls_options (): paths to the CA certificate file, client certificate, and the client key for use with TLS
             mqtt_host (): ip address of the MQTT broker
             mqtt_port (): port of the MQTT broker
             tamper_pin (): pin of the tamper switch
@@ -82,6 +84,7 @@ class Tapper(pn532.PN532_SPI):
         try:
             self.mqtt_client = mqtt.Client(client_id=self.get_id())
             self.mqtt_client.username = "TAPPER " + self.get_id()
+            self.mqtt_client.tls_set(tls_options[0], tls_options[1], tls_options[2])
             self.mqtt_client.connect(mqtt_host, mqtt_port, 60)
         except TimeoutError:
             logger.exception(
