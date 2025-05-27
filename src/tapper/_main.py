@@ -21,12 +21,23 @@ def main(
     buzzer_pin: int,
     cs_pin: digitalio.DigitalInOut,
     led_pins: tuple[int, int, int],
-):
-    """Main function for TAPPER."""
+    tls_options: tuple[str, str, str],
+) -> None:
+    """Main function for TAPPER.
+
+    Args:
+        mqtt_host (): ip address of the MQTT Broker
+        mqtt_port (): port of the MQTT Broker
+        tamper_pin (): pin of the tamper switch
+        buzzer_pin (): pin of the buzzer
+        cs_pin (): pin for chip select
+        led_pins (): pins of the RGB LED
+        tls_options (): paths to the CA certificate file, client TLS certificate, and the TLS client key
+    """
     spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
 
     tapper_instance: tapper.Tapper = tapper.Tapper(
-        spi, cs_pin, mqtt_host, mqtt_port, tamper_pin, buzzer_pin, led_pins
+        spi, cs_pin, tls_options, mqtt_host, mqtt_port, tamper_pin, buzzer_pin, led_pins
     )
 
     ic: int

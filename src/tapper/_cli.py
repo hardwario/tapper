@@ -55,6 +55,16 @@ def _version(debug: bool) -> None:
 )
 @click.option("-h", "--mqtt", "mqtt_host", help="MQTT broker host")
 @click.option("-p", "--port", "mqtt_port", default=1883, help="MQTT broker port")
+@click.option("-ca", "--cafile", "tls_ca", help="Path to the CA certificate file")
+@click.option(
+    "-cert",
+    "--certfile",
+    "tls_cert",
+    help="Path to the client certificate file for use with TLS",
+)
+@click.option(
+    "-key", "--keyfile", "tls_key", help="Path to the key file for use in TLS"
+)
 @click.option("--legacy", "legacy", is_flag=True, help="Run with legacy r1.0 hardware")
 @logger.catch(level="CRITICAL", reraise=True)
 def _run(
@@ -63,6 +73,9 @@ def _run(
     mqtt_port: int,
     path: str,
     legacy: bool,
+    tls_ca: str,
+    tls_cert: str,
+    tls_key: str,
 ) -> None:
     """Run TAPPER.
 
@@ -70,6 +83,9 @@ def _run(
         debug (bool): enable debug mode - print debug logs to terminal
         mqtt_host (str): ip address of the MQTT broker
         mqtt_port (int): port of the MQTT broker
+        tls_ca (): path to the CA certificate file
+        tls_cert (): path to the client TLS certificate
+        tls_key (): path to the TLS client key
         path (str): path to the TAPPER configuration file
         legacy (bool): run with legacy r1.0 hardware
 
@@ -82,6 +98,11 @@ def _run(
 
         mqtt_host: str = config["mqtt"]["host"]
         mqtt_port: int = int(config["mqtt"]["port"])
+
+        if "tls" in config["mqtt"]:
+            tls_ca: str = config["mqtt"]["tls"].get("cafile")
+            tls_cert: str = config["mqtt"]["tls"].get("certfile")
+            tls_key: str = config["mqtt"]["tls"].get("keyfile")
 
         tapper_logger.logger_start(debug)
 
@@ -106,4 +127,12 @@ def _run(
     if mqtt_host is None:
         raise click.UsageError("MQTT host not specified!")
 
-    tapper_main.main(mqtt_host, mqtt_port, tamper_pin, buzzer_pin, cs_pin, led_pins)
+    tapper_main.main(
+        mqtt_host,
+        mqtt_port,
+        tamper_pin,
+        buzzer_pin,
+        cs_pin,
+        led_pins,
+        (tls_ca, tls_cert, tls_key),
+    )
