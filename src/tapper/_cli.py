@@ -16,13 +16,13 @@ from tapper import _main as tapper_main
 from tapper import _version as tapper_version
 
 
-@click.group()
-def _cli() -> None:
+@click.group(help="The TAPPER Client CLI")
+def cli() -> None:
     """Define a click group."""
     pass
 
 
-@_cli.command(name="version", help="Display version of TAPPER package.")
+@cli.command(name="version", help="Display version of TAPPER package.")
 @click.option(
     "-d",
     "--debug",
@@ -44,7 +44,7 @@ def _version(debug: bool) -> None:
     )
 
 
-@_cli.command(name="run", help="Run TAPPER.")
+@cli.command(name="run", help="Run TAPPER.")
 @click.option("-c", "--config", "path", help="Path to the TAPPER configuration file")
 @click.option(
     "-d",
@@ -53,48 +53,63 @@ def _version(debug: bool) -> None:
     help="Enable debug mode - print debug logs to terminal",
     hidden=True,
 )
-@click.option("-h", "--mqtt", "mqtt_host", help="MQTT host")
-@click.option("-lt", "--logtail", "logtail_token", help="Logtail token", hidden=True)
-@click.option("-lh", "--logtail_host", "logtail_host", help="Logtail host", hidden=True)
+@click.option("-h", "--mqtt", "mqtt_host", help="MQTT broker host")
+@click.option("-p", "--port", "mqtt_port", default=1883, help="MQTT broker port")
+@click.option("-ca", "--cafile", "tls_ca", help="Path to the CA certificate file")
+@click.option(
+    "-cert",
+    "--certfile",
+    "tls_cert",
+    help="Path to the client certificate file for use with TLS",
+)
+@click.option(
+    "-key", "--keyfile", "tls_key", help="Path to the key file for use in TLS"
+)
 @click.option("--legacy", "legacy", is_flag=True, help="Run with legacy r1.0 hardware")
 @logger.catch(level="CRITICAL", reraise=True)
 def _run(
     debug: bool,
     mqtt_host: str,
-    logtail_token: str,
-    logtail_host: str,
+    mqtt_port: int,
     path: str,
     legacy: bool,
+    tls_ca: str,
+    tls_cert: str,
+    tls_key: str,
 ) -> None:
     """Run TAPPER.
 
     Args:
         debug (bool): enable debug mode - print debug logs to terminal
-        mqtt_host (str): address of MQTT broker
-        logtail_token (str): token for logtail
-        logtail_host (str): host for logtail
+        mqtt_host (str): ip address of the MQTT broker
+        mqtt_port (int): port of the MQTT broker
+        tls_ca (): path to the CA certificate file
+        tls_cert (): path to the client TLS certificate
+        tls_key (): path to the TLS client key
         path (str): path to the TAPPER configuration file
         legacy (bool): run with legacy r1.0 hardware
+
+    Raises:
+        click.UsageError: something wasn't specified or was specified improperly
     """
     if path is not None:
         with open(path, "r") as file:
             config: dict = yaml.safe_load(file)
 
         mqtt_host: str = config["mqtt"]["host"]
+        mqtt_port: int = int(config["mqtt"]["port"])
 
-        try:
-            logtail_token: str = config["logtail"]["token"]
-            logtail_host: str = config["logtail"]["host"]
-        except KeyError:
-            logtail_host: None = None
-            logtail_token: None = None
+        if "tls" in config["mqtt"]:
+            tls_ca: str = config["mqtt"]["tls"].get("cafile")
+            tls_cert: str = config["mqtt"]["tls"].get("certfile")
+            tls_key: str = config["mqtt"]["tls"].get("keyfile")
 
-        tapper_logger.logger_start(debug, logtail_token, logtail_host)
+        tapper_logger.logger_start(debug)
 
         logger.debug("Config loaded: " + f"'{json.dumps(config)}'")
 
     else:
-        tapper_logger.logger_start(debug, logtail_token, logtail_host)
+        tapper_logger.logger_start(debug)
 
     logger.info(f"Running TAPPER version {tapper_version.__version__}")
 
@@ -112,4 +127,12 @@ def _run(
     if mqtt_host is None:
         raise click.UsageError("MQTT host not specified!")
 
-    tapper_main.main(mqtt_host, tamper_pin, buzzer_pin, cs_pin, led_pins)
+    tapper_main.main(
+        mqtt_host,
+        mqtt_port,
+        tamper_pin,
+        buzzer_pin,
+        cs_pin,
+        led_pins,
+        (tls_ca, tls_cert, tls_key),
+    )

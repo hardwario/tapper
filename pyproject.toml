@@ -21,12 +21,7 @@ dependencies = [
 ]
 
 [project.scripts]
-tapper = "tapper:_cli._cli"
-
-[project.optional-dependencies]
-logtail = [
-    "logtail-python>=0.3.3",
-]
+tapper = "tapper:_cli.cli"
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
@@ -45,7 +40,8 @@ dev = [
 path = "src/tapper/_version.py"
 
 [tool.ruff.lint]
-select = ["D",
+select = [
+    "D",
     "D204",
     "I",
 ]
