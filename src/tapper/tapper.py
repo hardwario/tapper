@@ -42,8 +42,8 @@ class Tapper(pn532.PN532_SPI):
         """Initialize TAPPER.
 
         Args:
-            spi (): pin for an SPI device
-            cs_pin (): pin for chip select
+            spi (): pin for the PN532 SPI device
+            cs_pin (): pin for the chip select of the PN532
             tls_options (): paths to the CA certificate file, client certificate, and the client key for use with TLS
             mqtt_host (): ip address of the MQTT broker
             mqtt_port (): port of the MQTT broker

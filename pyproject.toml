@@ -16,8 +16,11 @@ dependencies = [
     "loguru>=0.7.3",
     "paho-mqtt>=2.1.0",
     "psutil>=7.0.0",
+    "pycairo>=1.28.0",
+    "pygobject>=3.52.3",
     "pyyaml>=6.0.2",
     "rpi-gpio",
+    "sdbus",
 ]
 
 [project.scripts]

@@ -11,6 +11,7 @@ import digitalio
 import yaml
 from loguru import logger
 
+from tapper import _config as tapper_config
 from tapper import _logger as tapper_logger
 from tapper import _main as tapper_main
 from tapper import _version as tapper_version
@@ -92,24 +93,16 @@ def _run(
     Raises:
         click.UsageError: something wasn't specified or was specified improperly
     """
+    tapper_logger.logger_start(debug)
+
     if path is not None:
-        with open(path, "r") as file:
-            config: dict = yaml.safe_load(file)
+        mqtt_host, mqtt_port, tls_ca, tls_cert, tls_key, legacy = tapper_config.load(
+            path
+        )
 
-        mqtt_host: str = config["mqtt"]["host"]
-        mqtt_port: int = int(config["mqtt"]["port"])
-
-        if "tls" in config["mqtt"]:
-            tls_ca: str = config["mqtt"]["tls"].get("cafile")
-            tls_cert: str = config["mqtt"]["tls"].get("certfile")
-            tls_key: str = config["mqtt"]["tls"].get("keyfile")
-
-        tapper_logger.logger_start(debug)
-
-        logger.debug("Config loaded: " + f"'{json.dumps(config)}'")
-
-    else:
-        tapper_logger.logger_start(debug)
+    logger.debug(
+        f"Config loaded: {mqtt_host}:{mqtt_port}, CA: {tls_ca}, Certificate: {tls_cert}, Key: {tls_key}"
+    )
 
     logger.info(f"Running TAPPER version {tapper_version.__version__}")
 
