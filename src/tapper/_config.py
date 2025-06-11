@@ -38,6 +38,7 @@ def load(path: str) -> tuple[str, int, str | None, str | None, str | None, bool]
     logger.debug("Config loaded: " + f"'{json.dumps(config)}'")
 
     if "wifi" in config:
+        logger.debug("Setting up WiFi")
         options: dict = config["wifi"]
         _setup_network(options)
 
