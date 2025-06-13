@@ -3,6 +3,7 @@
 import ipaddress
 import json
 import uuid
+from enum import verify
 
 import click
 import dbus
@@ -10,7 +11,7 @@ import yaml
 from loguru import logger
 
 
-@logger.catch()
+@logger.catch(reraise=True)
 def load(path: str) -> tuple[str, int, str | None, str | None, str | None, bool]:
     """Load the config and configure the Wi-Fi network.
 
@@ -98,16 +99,20 @@ def _setup_network(options: dict[str, str | list]):
 
             settings_address: dbus.Dictionary = dbus.Dictionary(
                 {
-                    "address": str(ip_interface.ip),
-                    "prefix": dbus.UInt32(ip_interface.network.prefixlen),
+                    "address": dbus.String(str(ip_interface.ip), variant_level=1),
+                    "prefix": dbus.UInt32(
+                        ip_interface.network.prefixlen, variant_level=1
+                    ),
                 }
             )
 
             if gateway is not None:
-                settings_address["gateway"] = gateway
+                settings_address["gateway"] = dbus.String(gateway)
 
             if dns is not None:
-                settings_address["dns"] = dbus.Array(dns)
+                settings_address["dns"] = dbus.Array(
+                    [dbus.ByteArray(server) for server in dns]
+                )
 
             settings_ip: dbus.Dictionary = dbus.Dictionary(
                 {
@@ -138,3 +143,4 @@ def _setup_network(options: dict[str, str | list]):
     nm_settings = dbus.Interface(proxy, "org.freedesktop.NetworkManager.Settings")
 
     nm_settings.AddConnection(connection)
+    nm_settings.LoadConnections()
