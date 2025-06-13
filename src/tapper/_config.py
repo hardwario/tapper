@@ -57,7 +57,7 @@ def _setup_network(options: dict[str, str | list]):
     network: str = options.get("network")
     passphrase: str = options.get("passphrase")
     dns: list | None = (
-        [ipaddress.ip_address(server).packed for server in options.get("nameservers")]
+        [str(ipaddress.ip_address(server)) for server in options.get("nameservers")]
         if options.get("dns") is not None
         else None
     )
