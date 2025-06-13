@@ -147,6 +147,5 @@ def _setup_network(options: dict[str, str | list]):
     nm_settings.AddConnection(connection)
     logger.debug("Connection added")
 
-    logger.debug("Reloading connections...")
-    reload_status = nm_settings.LoadConnections()
-    logger.debug(f"Connections reloaded, status: {reload_status}")
+    connections: list = nm_settings.ListConnections()
+    logger.debug(f"Connections: {connections}")
