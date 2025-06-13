@@ -142,5 +142,11 @@ def _setup_network(options: dict[str, str | list]):
     )
     nm_settings = dbus.Interface(proxy, "org.freedesktop.NetworkManager.Settings")
 
+    logger.debug("DBus NetworkManager settings interface opened")
+
     nm_settings.AddConnection(connection)
+    logger.debug("Connection added")
+
+    logger.debug("Reloading connections...")
     nm_settings.LoadConnections()
+    logger.debug("Connections reloaded")
