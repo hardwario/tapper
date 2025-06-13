@@ -111,7 +111,7 @@ def _setup_network(options: dict[str, str | list]):
 
             if dns is not None:
                 settings_address["dns"] = dbus.Array(
-                    [dbus.ByteArray(server) for server in dns]
+                    [dbus.String(server) for server in dns]
                 )
 
             settings_ip: dbus.Dictionary = dbus.Dictionary(
