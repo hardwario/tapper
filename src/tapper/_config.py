@@ -164,5 +164,5 @@ def _setup_network(options: dict[str, str | list]):
         for j in settings:
             logger.debug(f"{j}: {settings[j]}")
 
-        if settings["id"] == "tapper":
+        if settings.get("id") == "tapper":
             logger.debug("This one was made by TAPPER")
