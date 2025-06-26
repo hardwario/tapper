@@ -3,7 +3,6 @@
 import ipaddress
 import json
 import uuid
-from enum import verify
 
 import click
 import dbus
@@ -57,7 +56,10 @@ def _setup_network(options: dict[str, str | list]) -> None:
     network: str = options.get("network")
     passphrase: str = options.get("passphrase")
     dns: list | None = (
-        [ipaddress.ip_address(server).packed for server in options.get("nameservers")]
+        [
+            int(ipaddress.ip_address(server).packed)
+            for server in options.get("nameservers")
+        ]
         if options.get("dns") is not None
         else None
     )
