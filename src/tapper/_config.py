@@ -162,7 +162,13 @@ def _setup_network(options: dict[str, str | list]):
         settings = dict(connection_interface.GetSettings())
 
         for j in settings:
-            logger.debug(f"{j}: {settings[j]}")
+            if type(settings[j]) == dbus.Dictionary:
+                logger.debug(f"{j}: {settings[j]}")
+                for k in dict(settings[j]):
+                    logger.debug(f"{k}: {settings[j][k]}")
 
-        if settings.get("id") == "tapper":
-            logger.success("This one was made by TAPPER")
+                    if k == "id" and settings[j][k] in ["tapper", "TAPPER"]:
+                        logger.success("This one was made by TAPPER")
+
+            else:
+                logger.debug(f"{j}: {settings[j]}")
