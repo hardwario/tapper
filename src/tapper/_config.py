@@ -151,9 +151,11 @@ def _setup_network(options: dict[str, str | list]):
     logger.debug(f"Connections: {connections}")
 
     connection_0_proxy = bus.get_object(
-        "org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager/Settings"
+        "org.freedesktop.NetworkManager", connections[0]
     )
 
-    connection_0 = dbus.Interface(connection_0_proxy, connections[0])
+    connection_0 = dbus.Interface(
+        connection_0_proxy, "org.freedesktop.NetworkManager.Settings.Connection"
+    )
 
     logger.debug(f"{connection_0.GetSettings()}")
