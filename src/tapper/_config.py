@@ -154,13 +154,12 @@ def _setup_network(options: dict[str, str | list]) -> None:
             connection_proxy, "org.freedesktop.NetworkManager.Settings.Connection"
         )
 
-        logger.debug(f"{connection_interface.GetSettings()}")
+        logger.debug(f"Connection settings: {connection_interface.GetSettings()}")
 
         settings = dict(connection_interface.GetSettings())
 
         for j in settings:
             if type(settings[j]) == dbus.Dictionary:
-                logger.debug(f"{j}: {settings[j]}")
                 if dict(settings[j]).get("id") in ["tapper", "TAPPER"]:
                     logger.debug(
                         "This one was made by TAPPER, updating with current config"
@@ -169,8 +168,6 @@ def _setup_network(options: dict[str, str | list]) -> None:
                     connection_interface.Update(connection)
 
                     return
-            else:
-                logger.debug(f"{j}: {settings[j]}")
 
     nm_settings.AddConnection(connection)
     logger.debug("Connection added")
