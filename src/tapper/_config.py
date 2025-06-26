@@ -150,12 +150,19 @@ def _setup_network(options: dict[str, str | list]):
     connections: list = nm_settings.ListConnections()
     logger.debug(f"Connections: {connections}")
 
-    connection_0_proxy = bus.get_object(
-        "org.freedesktop.NetworkManager", connections[0]
-    )
+    for i in connections:
+        connection_proxy = bus.get_object("org.freedesktop.NetworkManager", i)
 
-    connection_0 = dbus.Interface(
-        connection_0_proxy, "org.freedesktop.NetworkManager.Settings.Connection"
-    )
+        connection_interface = dbus.Interface(
+            connection_proxy, "org.freedesktop.NetworkManager.Settings.Connection"
+        )
 
-    logger.debug(f"{connection_0.GetSettings()}")
+        logger.debug(f"{connection_interface.GetSettings()}")
+
+        settings = dict(connection_interface.GetSettings())
+
+        for j in settings:
+            logger.debug(f"{j}: {settings[j]}")
+
+        if settings["id"] == "tapper":
+            logger.debug("This one was made by TAPPER")
