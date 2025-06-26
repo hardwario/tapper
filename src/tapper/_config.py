@@ -57,7 +57,7 @@ def _setup_network(options: dict[str, str | list]):
     network: str = options.get("network")
     passphrase: str = options.get("passphrase")
     dns: list | None = (
-        [str(ipaddress.ip_address(server)) for server in options.get("nameservers")]
+        [ipaddress.ip_address(server).packed for server in options.get("nameservers")]
         if options.get("dns") is not None
         else None
     )
@@ -111,7 +111,7 @@ def _setup_network(options: dict[str, str | list]):
 
             if dns is not None:
                 settings_address["dns"] = dbus.Array(
-                    [dbus.String(server) for server in dns]
+                    [dbus.Array(dbus.UInt32(server)) for server in dns]
                 )
 
             settings_ip: dbus.Dictionary = dbus.Dictionary(
@@ -149,3 +149,11 @@ def _setup_network(options: dict[str, str | list]):
 
     connections: list = nm_settings.ListConnections()
     logger.debug(f"Connections: {connections}")
+
+    connection_0_proxy = bus.get_object(
+        "org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager/Settings"
+    )
+
+    connection_0 = dbus.Interface(connection_0_proxy, connections[0])
+
+    logger.debug(f"{connection_0}")
