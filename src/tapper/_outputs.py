@@ -21,6 +21,8 @@ def process_request(tapper_instance: tapper.Tapper, request_message: str) -> dic
 
     request_id: int = request["id"]
 
+    logger.info(f"Received request. ID: {request_id}")
+
     logger.debug(f"Processing request: {request}")
 
     try:
