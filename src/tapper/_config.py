@@ -53,7 +53,7 @@ def load(path: str) -> tuple[str, int, str | None, str | None, str | None, bool]
     )
 
 
-def _setup_network(options: dict[str, str | list]):
+def _setup_network(options: dict[str, str | list]) -> None:
     network: str = options.get("network")
     passphrase: str = options.get("passphrase")
     dns: list | None = (
@@ -144,9 +144,6 @@ def _setup_network(options: dict[str, str | list]):
 
     logger.debug("DBus NetworkManager settings interface opened")
 
-    nm_settings.AddConnection(connection)
-    logger.debug("Connection added")
-
     connections: list = nm_settings.ListConnections()
     logger.debug(f"Connections: {connections}")
 
@@ -164,11 +161,16 @@ def _setup_network(options: dict[str, str | list]):
         for j in settings:
             if type(settings[j]) == dbus.Dictionary:
                 logger.debug(f"{j}: {settings[j]}")
-                for k in dict(settings[j]):
-                    logger.debug(f"{k}: {settings[j][k]}")
+                if dict(settings[j]).get("id") in ["tapper", "TAPPER"]:
+                    logger.debug(
+                        "This one was made by TAPPER, updating with current config"
+                    )
 
-                    if k == "id" and settings[j][k] in ["tapper", "TAPPER"]:
-                        logger.success("This one was made by TAPPER")
+                    connection_interface.Update(connection)
 
+                    return
             else:
                 logger.debug(f"{j}: {settings[j]}")
+
+    nm_settings.AddConnection(connection)
+    logger.debug("Connection added")
