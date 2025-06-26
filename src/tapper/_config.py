@@ -156,4 +156,4 @@ def _setup_network(options: dict[str, str | list]):
 
     connection_0 = dbus.Interface(connection_0_proxy, connections[0])
 
-    logger.debug(f"{connection_0}")
+    logger.debug(f"{connection_0.GetSettings()}")
