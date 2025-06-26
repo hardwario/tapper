@@ -1,7 +1,7 @@
 """Main logic for TAPPER."""
 
 import queue
-from time import sleep
+import time
 
 import board
 import busio
@@ -16,16 +16,28 @@ from tapper import _threads as tapper_threads
 @logger.catch()
 def main(
     mqtt_host: str,
+    mqtt_port: int,
     tamper_pin: int,
     buzzer_pin: int,
     cs_pin: digitalio.DigitalInOut,
     led_pins: tuple[int, int, int],
-):
-    """Main function for TAPPER."""
+    tls_options: tuple[str, str, str],
+) -> None:
+    """Main function for TAPPER.
+
+    Args:
+        mqtt_host (): ip address of the MQTT Broker
+        mqtt_port (): port of the MQTT Broker
+        tamper_pin (): pin of the tamper switch
+        buzzer_pin (): pin of the buzzer
+        cs_pin (): pin for chip select
+        led_pins (): pins of the RGB LED
+        tls_options (): paths to the CA certificate file, client TLS certificate, and the TLS client key
+    """
     spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
 
     tapper_instance: tapper.Tapper = tapper.Tapper(
-        spi, cs_pin, mqtt_host, tamper_pin, buzzer_pin, led_pins
+        spi, cs_pin, tls_options, mqtt_host, mqtt_port, tamper_pin, buzzer_pin, led_pins
     )
 
     ic: int
@@ -72,11 +84,14 @@ def process_tag(tapper_instance: tapper.Tapper, uid: bytearray) -> None:
     led_state = tapper_instance.led.value
 
     try:
+        tapper_instance.led.off()
+        time.sleep(0.125)
         tapper_instance.led.color = (1, 1, 0)
         tapper_instance.buzzer.on()
-        sleep(0.125)
+        time.sleep(0.125)
         tapper_instance.led.color = led_state
         tapper_instance.buzzer.off()
+        time.sleep(0.125)
     finally:
         tapper_instance.lock_buzzer.release()
         tapper_instance.lock_led.release()

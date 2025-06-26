@@ -155,7 +155,7 @@ def start_threads(tapper_instance: tapper.Tapper) -> None:
         target=tapper_instance.mqtt_publisher_run, args=(stop_event,)
     )
     mqtt_thread: threading.Thread = threading.Thread(
-        target=tapper_instance.mqtt_client.loop_forever
+        target=tapper_instance.mqtt_client.loop_forever, name="MQTT forever loop"
     )
 
     def signal_handler(signum, frame):

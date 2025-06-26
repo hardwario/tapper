@@ -21,6 +21,8 @@ def process_request(tapper_instance: tapper.Tapper, request_message: str) -> dic
 
     request_id: int = request["id"]
 
+    logger.info(f"Received request. ID: {request_id}")
+
     logger.debug(f"Processing request: {request}")
 
     try:
@@ -75,6 +77,9 @@ def process_request(tapper_instance: tapper.Tapper, request_message: str) -> dic
                         tapper_instance.lock_led.acquire()
 
                         try:
+                            tapper_instance.led.off()
+                            time.sleep(0.125)
+
                             match color:
                                 case "red":
                                     tapper_instance.led.color = (1, 0, 0)
@@ -91,6 +96,11 @@ def process_request(tapper_instance: tapper.Tapper, request_message: str) -> dic
                 pattern, color = request["visual"]["pattern"].split("/", 1)
 
                 logger.debug(f"Processing visual pattern: {pattern}, {color}")
+
+                tapper_instance.lock_led.acquire()
+                tapper_instance.led.off()
+                time.sleep(1 / 8)
+                tapper_instance.lock_led.release()
 
                 match color:
                     case "red":

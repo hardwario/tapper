@@ -31,7 +31,9 @@ class Tapper(pn532.PN532_SPI):
         self,
         spi: busio.SPI,
         cs_pin: digitalio.DigitalInOut,
+        tls_options: tuple[str, str, str],
         mqtt_host: str,
+        mqtt_port: int = 1883,
         tamper_pin: int = 20,
         buzzer_pin: int = 18,
         led_pins: tuple[int, int, int] = (26, 13, 19),
@@ -40,9 +42,11 @@ class Tapper(pn532.PN532_SPI):
         """Initialize TAPPER.
 
         Args:
-            spi (): pin for an SPI device
-            cs_pin (): pin for chip select
-            mqtt_host (): address of the MQTT broker
+            spi (): pin for the PN532 SPI device
+            cs_pin (): pin for the chip select of the PN532
+            tls_options (): paths to the CA certificate file, client certificate, and the client key for use with TLS
+            mqtt_host (): ip address of the MQTT broker
+            mqtt_port (): port of the MQTT broker
             tamper_pin (): pin of the tamper switch
             buzzer_pin (): pin of the buzzer
             led_pins (): pins of the RGB LED
@@ -80,20 +84,19 @@ class Tapper(pn532.PN532_SPI):
         try:
             self.mqtt_client = mqtt.Client(client_id=self.get_id())
             self.mqtt_client.username = "TAPPER " + self.get_id()
-            self.mqtt_client.connect(mqtt_host, 1883, 60)
+            self.mqtt_client.tls_set(tls_options[0], tls_options[1], tls_options[2])
+            self.mqtt_client.connect(mqtt_host, mqtt_port, 60)
         except TimeoutError:
             logger.exception(
                 f"MQTT connection timed out, do you have the correct host? Current host: {mqtt_host}",
                 level="CRITICAL",
             )
-            time.sleep(2)  # Let logtail finish
             sys.exit(110)
         except OSError:
             logger.exception(
                 f"MQTT connection failed, do you have the correct host? Current host: {mqtt_host}",
                 level="CRITICAL",
             )
-            time.sleep(2)  # Let logtail finish
             sys.exit(113)
 
         self.mqtt_publish(
