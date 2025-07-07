@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """The Command Line Interface for TAPPER.
 
 This module provides a basic command-line tool for the TAPPER client.

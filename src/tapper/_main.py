@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Main logic for TAPPER."""
 
 import queue

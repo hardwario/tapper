@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Define the Tapper class.
 
 This package defines the Tapper class for use with HARDWARIO TAPPER hardware.

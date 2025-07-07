@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Processing of requests for outputs."""
 
 import json

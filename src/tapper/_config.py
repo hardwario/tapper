@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Config loading and Network Manager handling."""
 
 import ipaddress
