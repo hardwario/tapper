@@ -20,12 +20,11 @@ This repository provides a python module with the Tapper class and a simple thre
 ## Installation
 
 1. Flash RPi OS Lite (Raspberry Pi Imager)
-2. Update RPi with `sudo apt update && sudo apt upgrade`
-3. Install packages:
-    - `pipx`
-        - To add all tools to PATH: `pipx ensurepath`
-    - `git`
-    - `python3-dev`
+2. Update RPi with `sudo apt update && sudo apt upgrade -y`
+3. Install packages: `sudo apt install cmake git libdbus-1-dev libglib2.0-dev pipx python3-dev`
+    - add pipx binaries to path: `pipx esurepath`
+      > [!INFO]
+      > This adds an entry into your `~/.bashrc`
 4. Enable serial port and SPI in `sudo raspi-config`
 5. Install TAPPER: `pipx install 'git+ssh://git@github.com/hardwario/tapper.git@main#egg=tapper'`
     - To install the bleeding-edge version, use
@@ -42,10 +41,12 @@ This repository provides a python module with the Tapper class and a simple thre
 ```bash
 # For easy copy
 sudo apt update && sudo apt upgrade
-sudo apt install git pipx python3-dev
+sudo reboot
+# reconnect
+sudo apt install git pipx python3-dev cmake libdbus-1-dev libglib2.0-dev
 pipx ensurepath
-sudo raspi-config
-pipx install 'git+ssh://git@github.com/hardwario/tapper.git@main#egg=tapper'
+sudo raspi-config # enable serial port and SPI
+pipx install 'git+ssh://git@github.com/hardwario/tapper.git@main#egg=tapper' # stable
 tapper run -h <your_mqtt_host>
 ```
 
