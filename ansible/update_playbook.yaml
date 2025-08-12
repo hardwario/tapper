@@ -1,0 +1,20 @@
+- name: TAPPER Update
+  hosts: tapper
+  tasks:
+    - name: Ping TAPPERs
+      ansible.builtin.ping:
+
+    - name: Update repositories cache and upgrade
+      ansible.builtin.apt:
+        update_cache: yes
+        upgrade: full
+      become: true
+      
+    - name: Reboot
+      ansible.builtin.reboot:
+      become: true
+
+    - name: Upgrade TAPPER Client with pipx
+      community.general.pipx:
+        name: tapper
+        state: upgrade_all
