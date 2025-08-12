@@ -1,4 +1,5 @@
-r"""HARDWARIO TAPPER package.
+# SPDX-License-Identifier: MIT
+"""HARDWARIO TAPPER package.
 
 A package for use with HARDWARIO TAPPER hardware.
 It extends the Adafruit PN532 circuit python implementation by Tamper switch, UID of host,

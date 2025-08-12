@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Define the Tapper class.
 
 This package defines the Tapper class for use with HARDWARIO TAPPER hardware.
@@ -84,7 +85,10 @@ class Tapper(pn532.PN532_SPI):
         try:
             self.mqtt_client = mqtt.Client(client_id=self.get_id())
             self.mqtt_client.username = "TAPPER " + self.get_id()
-            self.mqtt_client.tls_set(tls_options[0], tls_options[1], tls_options[2])
+
+            if not None in tls_options:
+                self.mqtt_client.tls_set(tls_options[0], tls_options[1], tls_options[2])
+
             self.mqtt_client.connect(mqtt_host, mqtt_port, 60)
         except TimeoutError:
             logger.exception(

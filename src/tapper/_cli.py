@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """The Command Line Interface for TAPPER.
 
 This module provides a basic command-line tool for the TAPPER client.
@@ -64,7 +65,7 @@ def _version(debug: bool) -> None:
     help="Path to the client certificate file for use with TLS",
 )
 @click.option(
-    "-key", "--keyfile", "tls_key", help="Path to the key file for use in TLS"
+    "-key", "--keyfile", "tls_key", help="Path to the key file for use with TLS"
 )
 @click.option("--legacy", "legacy", is_flag=True, help="Run with legacy r1.0 hardware")
 @logger.catch(level="CRITICAL", reraise=True)
