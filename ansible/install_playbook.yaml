@@ -1,0 +1,44 @@
+- name: TAPPER Provision
+  hosts: tapper
+  tasks:
+    - name: Ping TAPPERs
+      ansible.builtin.ping:
+
+    - name: Update repositories cache and upgrade
+      ansible.builtin.apt:
+        update_cache: yes
+        upgrade: full
+      become: true
+      
+    - name: Reboot
+      ansible.builtin.reboot:
+      become: true
+
+    - name: Install required packages
+      ansible.builtin.apt:
+        pkg:
+          - git
+          - pipx
+          - python3-dev
+          - cmake
+          - libdbus-1-dev
+          - libglib2.0-dev
+      become: true
+
+    - name: Ensure pipx path
+      ansible.builtin.command: pipx ensurepath
+
+    - name: Reboot
+      ansible.builtin.reboot:
+      become: true
+      
+    - name: Enable SPI
+      ansible.builtin.command: dtparam spi=on
+      become: true
+
+    - name: Enable Serial
+      ansible.builtin.command: dtparam uart0
+      become: true
+      
+    - name: Install TAPPER Client using pipx
+      ansible.builtin.command: pipx install 'git+https://github.com/hardwario/tapper.git@main#egg=tapper'
